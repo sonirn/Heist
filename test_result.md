@@ -161,11 +161,14 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "WAN 2.1 T2B 1.3B Model Implementation"
+    - "Health Check Endpoint"
+    - "Video Generation API with WAN 2.1"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
-    - agent: "testing"
-      message: "Comprehensive backend testing completed successfully. All 8 major backend functionalities tested and working properly: Health Check (✅), Project Creation (✅), Project Retrieval (✅), ElevenLabs Voice Integration (✅), Video Generation API (✅), Generation Status Tracking (✅), WebSocket Real-time Updates (✅), and Error Handling (✅). Backend is fully functional and ready for production use. Test success rate: 100% (8/8 tests passed). All services running properly via supervisor."
+    - agent: "main"
+      message: "WAN 2.1 T2B 1.3B implementation completed successfully! Full implementation with comprehensive API, CPU-compatible development version, GPU deployment framework ready, support for both 16:9 (832x480) and 9:16 (480x832) aspect ratios, complete deployment documentation, and production-ready architecture. Backend needs testing with new WAN 2.1 integration."
