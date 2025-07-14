@@ -226,6 +226,49 @@ class BackendTester:
             self.log_test_result(test_name, False, f"Exception: {str(e)}")
             return None
     
+    async def test_wan21_aspect_ratios(self, project_id: str) -> bool:
+        """Test WAN 2.1 aspect ratio support (16:9 and 9:16)"""
+        test_name = "WAN 2.1 Aspect Ratios"
+        try:
+            aspect_ratios = ["16:9", "9:16"]
+            successful_tests = 0
+            
+            for aspect_ratio in aspect_ratios:
+                generation_data = {
+                    "project_id": project_id,
+                    "script": f"A cinematic scene showcasing {aspect_ratio} aspect ratio with beautiful lighting.",
+                    "aspect_ratio": aspect_ratio
+                }
+                
+                async with self.session.post(
+                    f"{self.api_base}/generate",
+                    json=generation_data,
+                    headers={"Content-Type": "application/json"}
+                ) as response:
+                    
+                    if response.status == 200:
+                        data = await response.json()
+                        if "generation_id" in data:
+                            successful_tests += 1
+                            logger.info(f"✅ {aspect_ratio} aspect ratio supported")
+                        else:
+                            logger.info(f"❌ {aspect_ratio} aspect ratio failed - no generation_id")
+                    else:
+                        logger.info(f"❌ {aspect_ratio} aspect ratio failed - HTTP {response.status}")
+            
+            success = successful_tests == len(aspect_ratios)
+            self.log_test_result(
+                test_name, 
+                success, 
+                f"Aspect ratio support: {successful_tests}/{len(aspect_ratios)} passed",
+                {"supported_ratios": successful_tests, "total_ratios": len(aspect_ratios)}
+            )
+            return success
+            
+        except Exception as e:
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
+    
     async def test_generation_status(self, generation_id: str) -> bool:
         """Test getting generation status"""
         test_name = "Generation Status"
