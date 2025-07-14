@@ -474,13 +474,13 @@ class BackendTester:
             return False
     
     async def run_all_tests(self) -> Dict[str, Any]:
-        """Run all backend tests"""
-        logger.info("🚀 Starting comprehensive backend API testing...")
+        """Run all backend tests with WAN 2.1 focus"""
+        logger.info("🚀 Starting comprehensive backend API testing with WAN 2.1 focus...")
         logger.info(f"Testing backend at: {self.base_url}")
         
         start_time = time.time()
         
-        # Test 1: Health Check
+        # Test 1: Health Check (WAN 2.1)
         health_ok = await self.test_health_check()
         
         # Test 2: Project Creation
@@ -495,24 +495,34 @@ class BackendTester:
         # Test 4: Voices Endpoint
         voices_ok = await self.test_voices_endpoint()
         
-        # Test 5: Start Generation (only if project creation succeeded)
+        # Test 5: WAN 2.1 Aspect Ratios (only if project creation succeeded)
+        aspect_ratios_ok = False
+        if project_creation_ok:
+            aspect_ratios_ok = await self.test_wan21_aspect_ratios(project_id)
+        
+        # Test 6: Parameter Validation (only if project creation succeeded)
+        parameter_validation_ok = False
+        if project_creation_ok:
+            parameter_validation_ok = await self.test_parameter_validation(project_id)
+        
+        # Test 7: Start Generation (only if project creation succeeded)
         generation_id = None
         generation_start_ok = False
         if project_creation_ok:
             generation_id = await self.test_generation_start(project_id)
             generation_start_ok = generation_id is not None
         
-        # Test 6: Generation Status (only if generation started)
+        # Test 8: Generation Status (only if generation started)
         generation_status_ok = False
         if generation_start_ok:
             generation_status_ok = await self.test_generation_status(generation_id)
         
-        # Test 7: WebSocket Connection (only if generation started)
+        # Test 9: WebSocket Connection (only if generation started)
         websocket_ok = False
         if generation_start_ok:
             websocket_ok = await self.test_websocket_connection(generation_id)
         
-        # Test 8: Error Handling
+        # Test 10: Error Handling
         error_handling_ok = await self.test_error_handling()
         
         # Calculate results
@@ -520,10 +530,12 @@ class BackendTester:
         
         # Count tests
         tests_run = [
-            ("Health Check", health_ok),
+            ("Health Check (WAN 2.1)", health_ok),
             ("Project Creation", project_creation_ok),
             ("Get Project", get_project_ok),
             ("Voices Endpoint", voices_ok),
+            ("WAN 2.1 Aspect Ratios", aspect_ratios_ok),
+            ("Parameter Validation", parameter_validation_ok),
             ("Start Generation", generation_start_ok),
             ("Generation Status", generation_status_ok),
             ("WebSocket Connection", websocket_ok),
@@ -535,7 +547,7 @@ class BackendTester:
         
         # Summary
         logger.info("\n" + "="*60)
-        logger.info("📊 BACKEND TESTING SUMMARY")
+        logger.info("📊 WAN 2.1 BACKEND TESTING SUMMARY")
         logger.info("="*60)
         
         for test_name, success in tests_run:
@@ -549,7 +561,7 @@ class BackendTester:
         
         overall_success = passed_tests == total_tests
         if overall_success:
-            logger.info("🎉 ALL TESTS PASSED!")
+            logger.info("🎉 ALL WAN 2.1 TESTS PASSED!")
         else:
             logger.info("⚠️  Some tests failed - check logs above for details")
         
