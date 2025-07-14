@@ -103,15 +103,7 @@ class WAN21VideoGenerator:
         Returns:
             bool: True if model loaded successfully
         """
-        try:
-            if self.device == "cuda" and torch.cuda.is_available():
-                return self._load_gpu_model()
-            else:
-                return self._load_cpu_compatible_model()
-                
-        except Exception as e:
-            logger.error(f"Failed to load WAN 2.1 model: {str(e)}")
-            return False
+        return self.real_generator.load_model()
     
     def _load_gpu_model(self):
         """
