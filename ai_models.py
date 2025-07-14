@@ -56,12 +56,9 @@ class StableAudioWrapper:
 
 class WAN21VideoGenerator:
     """
-    WAN 2.1 T2B 1.3B Video Generation Model Wrapper
+    WAN 2.1 T2B 1.3B Video Generation Model Wrapper using real implementation
     
     This class provides a complete interface for WAN 2.1 T2B 1.3B video generation.
-    
-    Current Status: CPU-compatible implementation with GPU deployment documentation
-    Production Status: Ready for GPU deployment with proper model weights
     """
     
     def __init__(self, device="cpu", model_path=None):
@@ -72,27 +69,16 @@ class WAN21VideoGenerator:
             device: Device to run the model on ('cpu' or 'cuda')
             model_path: Path to WAN 2.1 model weights directory
         """
+        self.real_generator = get_wan21_generator()
         self.device = device
         self.model_path = model_path
-        self.model = None
-        self.loaded = False
-        self.config = self._get_model_config()
+        self.loaded = self.real_generator.loaded
         
         # WAN 2.1 T2B 1.3B supported aspect ratios
-        self.supported_aspect_ratios = {
-            "16:9": (832, 480),  # Landscape
-            "9:16": (480, 832),  # Portrait
-        }
+        self.supported_aspect_ratios = self.real_generator.supported_aspect_ratios
         
         # Model specifications
-        self.model_specs = {
-            "model_name": "Wan2.1-T2V-1.3B",
-            "supported_resolutions": ["832x480", "480x832"],
-            "max_frames": 81,
-            "fps": 24,
-            "gpu_memory_required": "8GB+",
-            "cuda_compute_capability": "7.0+",
-        }
+        self.model_specs = self.real_generator.model_specs
         
         logger.info(f"WAN 2.1 T2B 1.3B initialized for {device}")
         
