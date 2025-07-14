@@ -26,76 +26,33 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class StableAudioWrapper:
-    """Wrapper for Stable Audio Open model"""
+    """Wrapper for Stable Audio Open model using real implementation"""
     
     def __init__(self):
-        self.model = None
-        self.model_config = None
-        self.device = "cpu"
-        self.sample_rate = 44100
-        self.loaded = False
+        self.real_generator = get_stable_audio_generator()
+        self.loaded = self.real_generator.loaded
     
     def load_model(self):
         """Load the Stable Audio model"""
-        try:
-            # Try to import stable_audio_tools
-            try:
-                from stable_audio_tools import get_pretrained_model
-                logger.info("Loading Stable Audio Open model...")
-                
-                # For now, create a mock model since we don't have the pretrained weights
-                # In production, you would download and load the actual model
-                self.model_config = {
-                    "sample_rate": 44100,
-                    "sample_size": 1048576,
-                    "channels": 2
-                }
-                
-                self.loaded = True
-                logger.info("Stable Audio model loaded successfully")
-                return True
-                
-            except ImportError:
-                logger.warning("stable_audio_tools not available, using mock implementation")
-                # Create a mock model configuration
-                self.model_config = {
-                    "sample_rate": 44100,
-                    "sample_size": 1048576,
-                    "channels": 2
-                }
-                
-                self.loaded = True
-                logger.info("Stable Audio mock model loaded successfully")
-                return True
-            
-        except Exception as e:
-            logger.error(f"Failed to load Stable Audio model: {str(e)}")
-            return False
+        return self.real_generator.load_model()
     
-    def generate_audio(self, prompt: str, duration: int = 10) -> Optional[bytes]:
-        """Generate audio from text prompt"""
-        if not self.loaded:
-            if not self.load_model():
-                return None
+    def generate_audio(self, prompt: str, duration: float = 10.0, 
+                      steps: int = 100, cfg_scale: float = 7.0,
+                      seed: Optional[int] = None) -> bytes:
+        """
+        Generate audio from text prompt
         
-        try:
-            # For now, generate silent audio as a placeholder
-            # In production, this would use the actual Stable Audio model
-            logger.info(f"Generating audio for prompt: {prompt}")
+        Args:
+            prompt: Text description of the audio
+            duration: Duration in seconds
+            steps: Number of diffusion steps
+            cfg_scale: Classifier-free guidance scale
+            seed: Random seed for reproducible results
             
-            # Create silent audio
-            num_samples = self.sample_rate * duration
-            audio_data = np.zeros((2, num_samples), dtype=np.float32)
-            
-            # Convert to bytes
-            audio_bytes = audio_data.tobytes()
-            
-            logger.info("Audio generation completed")
-            return audio_bytes
-            
-        except Exception as e:
-            logger.error(f"Audio generation failed: {str(e)}")
-            return None
+        Returns:
+            bytes: Generated audio data (WAV format)
+        """
+        return self.real_generator.generate_audio(prompt, duration, steps, cfg_scale, seed)
 
 class WAN21VideoGenerator:
     """
