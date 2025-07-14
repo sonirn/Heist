@@ -45,8 +45,8 @@ class BackendTester:
         }
     
     async def test_health_check(self) -> bool:
-        """Test the health check endpoint"""
-        test_name = "Health Check"
+        """Test the health check endpoint with WAN 2.1 model status"""
+        test_name = "Health Check (WAN 2.1)"
         try:
             async with self.session.get(f"{self.api_base}/health") as response:
                 if response.status == 200:
@@ -60,16 +60,25 @@ class BackendTester:
                         self.log_test_result(test_name, False, f"Missing fields: {missing_fields}", data)
                         return False
                     
-                    # Check AI models status
+                    # Check AI models status - specifically WAN 2.1
                     ai_models = data.get("ai_models", {})
                     wan21_loaded = ai_models.get("wan21", False)
                     stable_audio_loaded = ai_models.get("stable_audio", False)
                     
-                    if not wan21_loaded or not stable_audio_loaded:
-                        self.log_test_result(test_name, False, f"AI models not loaded: wan21={wan21_loaded}, stable_audio={stable_audio_loaded}", data)
+                    if not wan21_loaded:
+                        self.log_test_result(test_name, False, f"WAN 2.1 model not loaded: wan21={wan21_loaded}", data)
                         return False
                     
-                    self.log_test_result(test_name, True, "Health check passed, all AI models loaded", data)
+                    if not stable_audio_loaded:
+                        self.log_test_result(test_name, False, f"Stable Audio model not loaded: stable_audio={stable_audio_loaded}", data)
+                        return False
+                    
+                    # Verify status is healthy
+                    if data.get("status") != "healthy":
+                        self.log_test_result(test_name, False, f"Unhealthy status: {data.get('status')}", data)
+                        return False
+                    
+                    self.log_test_result(test_name, True, "Health check passed, WAN 2.1 and Stable Audio models loaded", data)
                     return True
                 else:
                     self.log_test_result(test_name, False, f"HTTP {response.status}", {"status": response.status})
