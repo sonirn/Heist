@@ -186,6 +186,7 @@ test_plan:
     - "WAN 2.1 T2B 1.3B Model Implementation"
     - "Health Check Endpoint"
     - "Video Generation API with WAN 2.1"
+    - "Stable Audio Open Integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
