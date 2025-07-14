@@ -21,37 +21,45 @@ The application framework is complete, but the core AI models need proper server
 6. FFmpeg combines everything into final video
 7. User receives completed video
 
-## Phase 1: AI Model Deployment (CRITICAL - Hardest Parts First)
+## Phase 1: Critical AI Model Deployment (IMMEDIATE PRIORITY)
 
-### 1.1 Wan 2.1 T2B 1.3B Model Deployment
+### 1.1 WAN 2.1 T2B 1.3B Model Research & Deployment
+- **Status**: ❌ CRITICAL - Currently using mock wrapper
 - **Priority**: HIGHEST
-- **Challenge**: Deploy large video generation model on server
+- **Challenge**: Deploy actual WAN 2.1 T2B 1.3B model on server
 - **Requirements**: 
   - Support both 16:9 and 9:16 aspect ratios
-  - Optimize for speed
+  - Optimize for speed (as fast as possible)
   - Handle multiple concurrent requests
   - Server-side deployment only
+  - Replace current CPU wrapper with real model
 - **Tasks**:
-  - Research Wan 2.1 T2B 1.3B installation requirements
-  - Set up model environment and dependencies
-  - Create API endpoints for video generation
-  - Test with different aspect ratios
-  - Implement request queuing system
-  - Performance optimization
+  - Research WAN 2.1 T2B 1.3B official implementation/repository
+  - Investigate hardware requirements (GPU, memory, storage)
+  - Find proper installation method and dependencies
+  - Download and set up model weights
+  - Test video generation with both aspect ratios
+  - Implement proper API integration
+  - Performance optimization for speed
+  - Multi-request handling
 
-### 1.2 Stable Audio Open Deployment
+### 1.2 Stable Audio Open Model Research & Deployment
+- **Status**: ❌ CRITICAL - Currently using mock wrapper
 - **Priority**: HIGH
-- **Challenge**: Deploy open-source audio generation model
+- **Challenge**: Deploy actual Stable Audio Open model from open source
 - **Requirements**:
-  - Generate sound effects based on script context
+  - Generate quality sound effects based on script context
   - Server-side deployment
   - Fast generation capabilities
+  - Replace current mock implementation
 - **Tasks**:
-  - Research Stable Audio Open installation
+  - Research Stable Audio Open official repository
+  - Find proper open source implementation
   - Set up audio generation environment
-  - Create API endpoints for sound generation
-  - Test audio quality and speed
-  - Implement request handling
+  - Download and configure model weights
+  - Test audio quality and generation speed
+  - Implement proper API integration
+  - Optimize for performance
 
 ## Phase 2: Third-Party Integrations
 
