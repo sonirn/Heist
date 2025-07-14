@@ -201,15 +201,7 @@ class WAN21VideoGenerator:
             "model_specs": self.model_specs,
             "supported_aspect_ratios": self.supported_aspect_ratios,
             "device": self.device,
-            "loaded": self.loaded,
-            "config": self.config,
-            "gpu_deployment_ready": self.device == "cuda" and torch.cuda.is_available(),
-            "deployment_notes": {
-                "current_status": "CPU-compatible implementation active",
-                "gpu_requirements": "NVIDIA GPU with 8GB+ VRAM, CUDA 11.8+",
-                "model_weights": "Download from: huggingface-cli download Wan-AI/Wan2.1-T2V-1.3B",
-                "production_ready": "GPU deployment framework ready"
-            }
+            "loaded": self.loaded
         }
     
     def get_deployment_instructions(self) -> str:
