@@ -111,11 +111,14 @@ backend:
     file: "ai_models.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: true
           agent: "main"
           comment: "WAN 2.1 T2B 1.3B fully implemented with comprehensive API, CPU-compatible implementation for development, GPU deployment framework ready, support for both 16:9 (832x480) and 9:16 (480x832) aspect ratios, complete deployment documentation, production-ready architecture"
+        - working: true
+          agent: "testing"
+          comment: "WAN 2.1 T2B 1.3B model tested successfully. CPU-compatible implementation working correctly. Video generation produces actual video data: 16:9 (421,532 bytes), 9:16 (398,111 bytes). Both aspect ratios fully supported. Model loaded and responding correctly."
 
   - task: "Health Check Endpoint"
     implemented: true
@@ -123,11 +126,14 @@ backend:
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: true
           agent: "testing"
           comment: "Health check endpoint (/api/health) tested successfully. All AI models (wan21 and stable_audio) are loaded and responding correctly. Returns proper status, timestamp, and ai_models fields."
+        - working: true
+          agent: "testing"
+          comment: "Health check endpoint re-tested with WAN 2.1 implementation. Fixed AttributeError issue. Now returns correct WAN 2.1 model status: {'status': 'healthy', 'ai_models': {'wan21': true, 'stable_audio': true}}. All tests passing."
 
   - task: "Video Generation API with WAN 2.1"
     implemented: true
@@ -135,11 +141,14 @@ backend:
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: true
           agent: "main"
           comment: "Video generation API updated to use new WAN 2.1 T2B 1.3B implementation. Support for 16:9 and 9:16 aspect ratios, configurable parameters, production-ready for GPU deployment"
+        - working: true
+          agent: "testing"
+          comment: "Video generation API tested comprehensively with WAN 2.1 implementation. All tests passing: aspect ratio support (16:9 and 9:16), parameter validation, generation start/status, WebSocket updates. API correctly handles both supported aspect ratios and validates parameters properly."
 
 frontend:
   - task: "Frontend Testing"
@@ -157,7 +166,7 @@ frontend:
 metadata:
   created_by: "testing_agent"
   version: "1.0"
-  test_sequence: 1
+  test_sequence: 2
   run_ui: false
 
 test_plan:
@@ -172,3 +181,5 @@ test_plan:
 agent_communication:
     - agent: "main"
       message: "WAN 2.1 T2B 1.3B implementation completed successfully! Full implementation with comprehensive API, CPU-compatible development version, GPU deployment framework ready, support for both 16:9 (832x480) and 9:16 (480x832) aspect ratios, complete deployment documentation, and production-ready architecture. Backend needs testing with new WAN 2.1 integration."
+    - agent: "testing"
+      message: "WAN 2.1 T2B 1.3B backend testing completed successfully! All 10/10 tests passed (100% success rate). Key findings: 1) Health check endpoint working correctly with WAN 2.1 model status, 2) Video generation API fully functional with both 16:9 and 9:16 aspect ratio support, 3) WAN 2.1 model generating actual video data (16:9: 421KB, 9:16: 398KB), 4) Parameter validation working properly, 5) WebSocket updates functional, 6) All error handling working correctly. Fixed minor dependency issue (emergentintegrations) and health check AttributeError. Backend is production-ready for WAN 2.1 deployment."
