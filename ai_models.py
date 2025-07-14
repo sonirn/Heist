@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-WAN 2.1 T2B 1.3B Video Generation Model Implementation
-Provides both CPU-compatible interface and GPU deployment documentation
+AI Models Integration Module for Script-to-Video Website
+Integrates WAN 2.1 T2B 1.3B and Stable Audio Open models
 """
 import os
 import sys
@@ -17,6 +17,9 @@ import cv2
 import json
 from datetime import datetime
 import subprocess
+
+# Import real implementations
+from ai_models_real import get_wan21_generator, get_stable_audio_generator, RealWAN21VideoGenerator, RealStableAudioGenerator
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
