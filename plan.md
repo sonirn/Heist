@@ -5,6 +5,13 @@
 ## Project Overview
 Create a comprehensive script-to-video website where users input a script and receive a complete video with clips, voice-over, and sound effects.
 
+## Current Status
+✅ **Foundation Complete**: Full-stack application with backend APIs, frontend UI, and third-party integrations
+❌ **Critical Gap**: AI models (WAN 2.1 and Stable Audio Open) are using mock/CPU wrappers instead of real deployments
+
+## Priority Focus: Real AI Model Deployment
+The application framework is complete, but the core AI models need proper server deployment to make it functional.
+
 ## Core Workflow
 1. User writes script
 2. Gemini analyzes script structure
