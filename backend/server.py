@@ -552,7 +552,7 @@ async def startup_event():
     await connect_to_mongo()
     
     # Initialize AI models
-    ai_manager.initialize_models()
+    ai_manager.load_models()
     
     logger.info("Application started successfully")
 
