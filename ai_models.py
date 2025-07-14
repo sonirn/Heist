@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
 """
-CPU-compatible wrapper for AI models
+WAN 2.1 T2B 1.3B Video Generation Model Implementation
+Provides both CPU-compatible interface and GPU deployment documentation
 """
 import os
 import sys
 import torch
 import logging
 import numpy as np
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
 import base64
 import io
 from PIL import Image
 import tempfile
 import cv2
+import json
+from datetime import datetime
+import subprocess
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
