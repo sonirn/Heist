@@ -36,6 +36,7 @@ import boto3
 from botocore.client import Config
 import requests
 import subprocess
+import aiohttp
 import asyncio
 import aiofiles
 
