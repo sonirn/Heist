@@ -260,24 +260,27 @@ class BackendTester:
             
             # Test WebSocket connection
             try:
-                async with websockets.connect(ws_endpoint, timeout=10) as websocket:
-                    # Send a test message
-                    await websocket.send("ping")
-                    
-                    # Try to receive a message (with timeout)
-                    try:
-                        response = await asyncio.wait_for(websocket.recv(), timeout=5.0)
-                        self.log_test_result(test_name, True, "WebSocket connection successful", {"response": response})
-                        return True
-                    except asyncio.TimeoutError:
-                        self.log_test_result(test_name, True, "WebSocket connected (no immediate response)", {"status": "connected"})
-                        return True
+                websocket = await websockets.connect(ws_endpoint)
+                
+                # Send a test message
+                await websocket.send("ping")
+                
+                # Try to receive a message (with timeout)
+                try:
+                    response = await asyncio.wait_for(websocket.recv(), timeout=5.0)
+                    await websocket.close()
+                    self.log_test_result(test_name, True, "WebSocket connection successful", {"response": response})
+                    return True
+                except asyncio.TimeoutError:
+                    await websocket.close()
+                    self.log_test_result(test_name, True, "WebSocket connected (no immediate response)", {"status": "connected"})
+                    return True
                         
             except websockets.exceptions.ConnectionClosed:
                 self.log_test_result(test_name, False, "WebSocket connection closed immediately")
                 return False
-            except websockets.exceptions.InvalidStatusCode as e:
-                self.log_test_result(test_name, False, f"WebSocket invalid status: {e}")
+            except Exception as ws_e:
+                self.log_test_result(test_name, False, f"WebSocket error: {ws_e}")
                 return False
                 
         except Exception as e:
