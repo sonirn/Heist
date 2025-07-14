@@ -159,49 +159,34 @@ class WAN21VideoGenerator:
             logger.error(f"CPU model loading failed: {str(e)}")
             return False
     
-    def generate_video(self, 
-                      prompt: str, 
-                      aspect_ratio: str = "16:9",
-                      frames: int = 81,
-                      guidance_scale: float = 5.0,
-                      sampling_steps: int = 50,
-                      seed: int = None) -> Optional[bytes]:
+    def generate_video(self, prompt: str, aspect_ratio: str = "16:9", 
+                      num_frames: int = 81, fps: int = 24, 
+                      guidance_scale: float = 6.0, num_inference_steps: int = 50,
+                      seed: Optional[int] = None) -> bytes:
         """
         Generate video from text prompt
         
         Args:
             prompt: Text prompt for video generation
             aspect_ratio: Aspect ratio ("16:9" or "9:16")
-            frames: Number of frames to generate (default: 81)
+            num_frames: Number of frames to generate (default: 81)
+            fps: Frames per second (default: 24)
             guidance_scale: Guidance scale for generation
-            sampling_steps: Number of sampling steps
+            num_inference_steps: Number of inference steps
             seed: Random seed for reproducibility
             
         Returns:
-            bytes: Video data in MP4 format or None if failed
+            bytes: Video data in MP4 format
         """
-        if not self.loaded:
-            if not self.load_model():
-                return None
-        
-        try:
-            # Validate aspect ratio
-            if aspect_ratio not in self.supported_aspect_ratios:
-                logger.error(f"Unsupported aspect ratio: {aspect_ratio}")
-                return None
-            
-            width, height = self.supported_aspect_ratios[aspect_ratio]
-            
-            logger.info(f"Generating video: '{prompt}' ({aspect_ratio}, {width}x{height})")
-            
-            if self.device == "cuda" and self.model.get("type") != "cpu_compatible":
-                return self._generate_gpu_video(prompt, width, height, frames, guidance_scale, sampling_steps, seed)
-            else:
-                return self._generate_cpu_video(prompt, width, height, frames, guidance_scale, sampling_steps, seed)
-                
-        except Exception as e:
-            logger.error(f"Video generation failed: {str(e)}")
-            return None
+        return self.real_generator.generate_video(
+            prompt=prompt,
+            aspect_ratio=aspect_ratio,
+            num_frames=num_frames,
+            fps=fps,
+            guidance_scale=guidance_scale,
+            num_inference_steps=num_inference_steps,
+            seed=seed
+        )
     
     def _generate_gpu_video(self, prompt, width, height, frames, guidance_scale, sampling_steps, seed):
         """
