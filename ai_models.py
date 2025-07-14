@@ -204,68 +204,7 @@ class WAN21VideoGenerator:
             "loaded": self.loaded
         }
     
-    def get_deployment_instructions(self) -> str:
-        """
-        Get detailed deployment instructions for production GPU setup
-        
-        Returns:
-            String containing deployment instructions
-        """
-        instructions = """
-WAN 2.1 T2B 1.3B Production Deployment Instructions
-==================================================
 
-1. Hardware Requirements:
-   - NVIDIA GPU with 8GB+ VRAM (RTX 3060 Ti or better)
-   - CUDA 11.8 or later
-   - 32GB+ system RAM recommended
-
-2. Software Requirements:
-   - Python 3.10+
-   - PyTorch 2.4.0+ with CUDA support
-   - flash-attn (requires CUDA)
-
-3. Model Installation:
-   ```bash
-   # Install CUDA PyTorch
-   pip install torch>=2.4.0 torchvision>=0.19.0 --index-url https://download.pytorch.org/whl/cu118
-   
-   # Install flash-attn
-   pip install flash-attn --no-build-isolation
-   
-   # Download model weights
-   pip install huggingface_hub
-   huggingface-cli download Wan-AI/Wan2.1-T2V-1.3B --local-dir ./Wan2.1-T2V-1.3B
-   
-   # Clone WAN 2.1 repository
-   git clone https://github.com/Wan-Video/Wan2.1.git
-   cd Wan2.1
-   pip install -r requirements.txt
-   ```
-
-4. Configuration:
-   - Set model_path to the downloaded weights directory
-   - Configure device='cuda'
-   - Update ai_models.py to use GPU implementation
-
-5. Testing:
-   ```bash
-   python -c "
-   from ai_models import WAN21VideoGenerator
-   generator = WAN21VideoGenerator(device='cuda', model_path='./Wan2.1-T2V-1.3B')
-   print(generator.get_model_info())
-   "
-   ```
-
-6. Production Integration:
-   - Replace _load_cpu_compatible_model() with actual GPU model loading
-   - Update _generate_gpu_video() with real WAN 2.1 inference
-   - Configure multi-GPU support if needed
-
-Current Status: CPU-compatible implementation active
-Production Status: GPU deployment framework ready
-"""
-        return instructions
 
 class AIModelManager:
     """Manager class for all AI models"""
