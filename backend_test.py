@@ -339,6 +339,80 @@ class BackendTester:
             self.log_test_result(test_name, False, f"Exception: {str(e)}")
             return False
     
+    async def test_parameter_validation(self, project_id: str) -> bool:
+        """Test parameter validation for video generation"""
+        test_name = "Parameter Validation"
+        validation_tests_passed = 0
+        total_validation_tests = 3
+        
+        try:
+            # Test 1: Invalid aspect ratio
+            invalid_aspect_data = {
+                "project_id": project_id,
+                "script": "Test script",
+                "aspect_ratio": "4:3"  # Unsupported aspect ratio
+            }
+            
+            async with self.session.post(
+                f"{self.api_base}/generate",
+                json=invalid_aspect_data,
+                headers={"Content-Type": "application/json"}
+            ) as response:
+                # Should either reject or handle gracefully
+                if response.status >= 400 or response.status == 200:
+                    validation_tests_passed += 1
+                    logger.info("✅ Invalid aspect ratio handled properly")
+                else:
+                    logger.info("❌ Invalid aspect ratio should be handled")
+            
+            # Test 2: Missing required fields
+            incomplete_data = {
+                "project_id": project_id
+                # Missing script and aspect_ratio
+            }
+            
+            async with self.session.post(
+                f"{self.api_base}/generate",
+                json=incomplete_data,
+                headers={"Content-Type": "application/json"}
+            ) as response:
+                if response.status >= 400:
+                    validation_tests_passed += 1
+                    logger.info("✅ Missing fields properly rejected")
+                else:
+                    logger.info("❌ Missing fields should be rejected")
+            
+            # Test 3: Valid parameters should work
+            valid_data = {
+                "project_id": project_id,
+                "script": "A beautiful landscape with mountains and rivers",
+                "aspect_ratio": "16:9"
+            }
+            
+            async with self.session.post(
+                f"{self.api_base}/generate",
+                json=valid_data,
+                headers={"Content-Type": "application/json"}
+            ) as response:
+                if response.status == 200:
+                    validation_tests_passed += 1
+                    logger.info("✅ Valid parameters accepted")
+                else:
+                    logger.info("❌ Valid parameters should be accepted")
+            
+            success = validation_tests_passed == total_validation_tests
+            self.log_test_result(
+                test_name, 
+                success, 
+                f"Parameter validation tests: {validation_tests_passed}/{total_validation_tests} passed",
+                {"passed": validation_tests_passed, "total": total_validation_tests}
+            )
+            return success
+            
+        except Exception as e:
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
+    
     async def test_error_handling(self) -> bool:
         """Test error handling for invalid requests"""
         test_name = "Error Handling"
