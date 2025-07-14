@@ -670,7 +670,65 @@ class BackendTester:
             self.log_test_result(test_name, False, f"Exception: {str(e)}")
             return False
     
-    async def run_all_tests(self) -> Dict[str, Any]:
+    async def test_error_handling(self) -> bool:
+        """Test error handling for invalid requests"""
+        test_name = "Error Handling"
+        error_tests_passed = 0
+        total_error_tests = 4
+        
+        try:
+            # Test 1: Invalid project creation
+            async with self.session.post(
+                f"{self.api_base}/projects",
+                json={"invalid": "data"},
+                headers={"Content-Type": "application/json"}
+            ) as response:
+                if response.status >= 400:
+                    error_tests_passed += 1
+                    logger.info("✅ Invalid project creation properly rejected")
+                else:
+                    logger.info("❌ Invalid project creation should have been rejected")
+            
+            # Test 2: Non-existent project
+            async with self.session.get(f"{self.api_base}/projects/non-existent-id") as response:
+                if response.status == 404:
+                    error_tests_passed += 1
+                    logger.info("✅ Non-existent project properly returns 404")
+                else:
+                    logger.info("❌ Non-existent project should return 404")
+            
+            # Test 3: Invalid generation request
+            async with self.session.post(
+                f"{self.api_base}/generate",
+                json={"project_id": "invalid"},
+                headers={"Content-Type": "application/json"}
+            ) as response:
+                if response.status >= 400:
+                    error_tests_passed += 1
+                    logger.info("✅ Invalid generation request properly rejected")
+                else:
+                    logger.info("❌ Invalid generation request should have been rejected")
+            
+            # Test 4: Non-existent generation status
+            async with self.session.get(f"{self.api_base}/generate/non-existent-id") as response:
+                if response.status == 404:
+                    error_tests_passed += 1
+                    logger.info("✅ Non-existent generation properly returns 404")
+                else:
+                    logger.info("❌ Non-existent generation should return 404")
+            
+            success = error_tests_passed == total_error_tests
+            self.log_test_result(
+                test_name, 
+                success, 
+                f"Error handling tests: {error_tests_passed}/{total_error_tests} passed",
+                {"passed": error_tests_passed, "total": total_error_tests}
+            )
+            return success
+            
+        except Exception as e:
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
         """Run all backend tests with WAN 2.1 and Stable Audio focus"""
         logger.info("🚀 Starting comprehensive backend API testing with WAN 2.1 and Stable Audio focus...")
         logger.info(f"Testing backend at: {self.base_url}")
