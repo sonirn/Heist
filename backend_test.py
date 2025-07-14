@@ -340,10 +340,10 @@ class BackendTester:
             return False
     
     async def test_parameter_validation(self, project_id: str) -> bool:
-        """Test parameter validation for video generation"""
-        test_name = "Parameter Validation"
+        """Test parameter validation for video generation with new WAN 2.1 parameters"""
+        test_name = "Parameter Validation (WAN 2.1)"
         validation_tests_passed = 0
-        total_validation_tests = 3
+        total_validation_tests = 5
         
         try:
             # Test 1: Invalid aspect ratio
@@ -399,6 +399,48 @@ class BackendTester:
                     logger.info("✅ Valid parameters accepted")
                 else:
                     logger.info("❌ Valid parameters should be accepted")
+            
+            # Test 4: WAN 2.1 specific parameters (fps, guidance_scale, num_inference_steps)
+            wan21_params_data = {
+                "project_id": project_id,
+                "script": "A cinematic scene with advanced parameters",
+                "aspect_ratio": "16:9",
+                "fps": 24,
+                "guidance_scale": 6.0,
+                "num_inference_steps": 50
+            }
+            
+            async with self.session.post(
+                f"{self.api_base}/generate",
+                json=wan21_params_data,
+                headers={"Content-Type": "application/json"}
+            ) as response:
+                if response.status == 200:
+                    validation_tests_passed += 1
+                    logger.info("✅ WAN 2.1 advanced parameters accepted")
+                else:
+                    logger.info("❌ WAN 2.1 advanced parameters should be accepted")
+            
+            # Test 5: Edge case parameters
+            edge_case_data = {
+                "project_id": project_id,
+                "script": "Edge case testing",
+                "aspect_ratio": "9:16",
+                "fps": 30,  # Different FPS
+                "guidance_scale": 10.0,  # Higher guidance
+                "num_inference_steps": 25  # Lower steps
+            }
+            
+            async with self.session.post(
+                f"{self.api_base}/generate",
+                json=edge_case_data,
+                headers={"Content-Type": "application/json"}
+            ) as response:
+                if response.status == 200:
+                    validation_tests_passed += 1
+                    logger.info("✅ Edge case parameters handled properly")
+                else:
+                    logger.info("❌ Edge case parameters should be handled")
             
             success = validation_tests_passed == total_validation_tests
             self.log_test_result(
