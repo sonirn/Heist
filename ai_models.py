@@ -82,20 +82,18 @@ class WAN21VideoGenerator:
         
         logger.info(f"WAN 2.1 T2B 1.3B initialized for {device}")
         
-    def _get_model_config(self):
-        """Get WAN 2.1 model configuration"""
+    def get_model_info(self) -> Dict[str, Any]:
+        """
+        Get model information and specifications
+        
+        Returns:
+            Dict containing model information
+        """
         return {
-            "model_name": "Wan2.1-T2V-1.3B",
-            "patch_size": (1, 2, 2),
-            "dim": 1536,
-            "ffn_dim": 8960,
-            "freq_dim": 256,
-            "num_heads": 12,
-            "num_layers": 30,
-            "vae_stride": (4, 8, 8),
-            "sample_fps": 24,
-            "num_train_timesteps": 1000,
-            "max_frames": 81,
+            "model_specs": self.model_specs,
+            "supported_aspect_ratios": self.supported_aspect_ratios,
+            "device": self.device,
+            "loaded": self.loaded
         }
     
     def load_model(self):
