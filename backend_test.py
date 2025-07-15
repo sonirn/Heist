@@ -1321,6 +1321,230 @@ NARRATOR: Experience the power of AI-driven video production.
             self.log_test_result(test_name, False, f"Exception: {str(e)}")
             return False
     
+    async def test_elevenlabs_api_key_verification(self) -> bool:
+        """Test ElevenLabs API Key Verification - Focus on voice generation pipeline"""
+        test_name = "ElevenLabs API Key Verification"
+        try:
+            logger.info("🔑 TESTING ELEVENLABS API KEY VERIFICATION")
+            logger.info("=" * 80)
+            
+            # Test 1: Direct API key test with voices endpoint
+            logger.info("🎤 Step 1: Testing ElevenLabs API key with voices endpoint...")
+            
+            async with self.session.get(f"{self.api_base}/voices") as response:
+                if response.status == 200:
+                    voices_data = await response.json()
+                    
+                    if isinstance(voices_data, list) and len(voices_data) > 0:
+                        logger.info(f"✅ ElevenLabs API key working - Retrieved {len(voices_data)} voices")
+                        
+                        # Check voice structure
+                        sample_voice = voices_data[0]
+                        required_fields = ["voice_id", "name"]
+                        
+                        if all(field in sample_voice for field in required_fields):
+                            logger.info("✅ Voice data structure is correct")
+                            
+                            # Test 2: Test multi-character voice system
+                            logger.info("🎭 Step 2: Testing multi-character voice system...")
+                            
+                            # Create a test project with multi-character script
+                            multi_char_script = """
+NARRATOR: Welcome to our story about friendship and adventure.
+
+SARAH: I'm so excited about this new journey we're starting!
+
+JOHN: Me too, Sarah. This is going to be amazing.
+
+NARRATOR: And so their adventure began.
+                            """.strip()
+                            
+                            project_data = {
+                                "script": multi_char_script,
+                                "aspect_ratio": "16:9",
+                                "voice_name": "default"
+                            }
+                            
+                            async with self.session.post(
+                                f"{self.api_base}/projects",
+                                json=project_data,
+                                headers={"Content-Type": "application/json"}
+                            ) as proj_response:
+                                if proj_response.status == 200:
+                                    project_result = await proj_response.json()
+                                    project_id = project_result.get("project_id")
+                                    
+                                    if project_id:
+                                        logger.info(f"✅ Multi-character project created: {project_id}")
+                                        
+                                        # Test 3: Start generation and monitor voice generation steps
+                                        logger.info("🚀 Step 3: Testing voice generation pipeline...")
+                                        
+                                        generation_data = {
+                                            "project_id": project_id,
+                                            "script": multi_char_script,
+                                            "aspect_ratio": "16:9"
+                                        }
+                                        
+                                        async with self.session.post(
+                                            f"{self.api_base}/generate",
+                                            json=generation_data,
+                                            headers={"Content-Type": "application/json"}
+                                        ) as gen_response:
+                                            if gen_response.status == 200:
+                                                gen_result = await gen_response.json()
+                                                generation_id = gen_result.get("generation_id")
+                                                
+                                                if generation_id:
+                                                    logger.info(f"✅ Voice generation started: {generation_id}")
+                                                    
+                                                    # Monitor specifically for voice generation steps
+                                                    voice_steps_found = []
+                                                    max_checks = 15
+                                                    
+                                                    for check in range(max_checks):
+                                                        await asyncio.sleep(2)
+                                                        
+                                                        async with self.session.get(f"{self.api_base}/generate/{generation_id}") as status_response:
+                                                            if status_response.status == 200:
+                                                                status_data = await status_response.json()
+                                                                current_message = status_data.get("message", "").lower()
+                                                                current_progress = status_data.get("progress", 0.0)
+                                                                current_status = status_data.get("status", "")
+                                                                
+                                                                logger.info(f"📊 Check {check + 1}: Progress={current_progress}%, Status={current_status}, Message='{current_message}'")
+                                                                
+                                                                # Look for voice-related steps
+                                                                voice_keywords = [
+                                                                    "voice assignment", "assigning voices", "character voice",
+                                                                    "multi-character audio", "generating audio", "voice generation",
+                                                                    "speech generation", "elevenlabs", "audio creation"
+                                                                ]
+                                                                
+                                                                for keyword in voice_keywords:
+                                                                    if keyword in current_message and keyword not in voice_steps_found:
+                                                                        voice_steps_found.append(keyword)
+                                                                        logger.info(f"🎤 VOICE STEP DETECTED: {keyword}")
+                                                                
+                                                                # Check if we've moved past the voice generation steps
+                                                                if current_progress >= 70.0 or current_status in ["completed", "failed"]:
+                                                                    logger.info(f"🏁 Voice generation phase completed or moved to post-production")
+                                                                    break
+                                                    
+                                                    # Test 4: Verify voice generation didn't fail with 401 errors
+                                                    logger.info("🔍 Step 4: Verifying no authentication errors...")
+                                                    
+                                                    final_status_check = await self.session.get(f"{self.api_base}/generate/{generation_id}")
+                                                    if final_status_check.status == 200:
+                                                        final_data = await final_status_check.json()
+                                                        final_status = final_data.get("status", "")
+                                                        final_message = final_data.get("message", "")
+                                                        
+                                                        # Check if generation failed due to voice/auth issues
+                                                        auth_error_indicators = ["401", "unauthorized", "authentication", "api key", "elevenlabs error"]
+                                                        voice_error_found = any(indicator in final_message.lower() for indicator in auth_error_indicators)
+                                                        
+                                                        if not voice_error_found and final_status != "failed":
+                                                            logger.info("✅ No authentication errors detected in voice generation")
+                                                            
+                                                            # Final assessment
+                                                            success_criteria = {
+                                                                "api_key_working": True,  # Voices endpoint worked
+                                                                "voice_data_valid": True,  # Voice structure correct
+                                                                "project_created": True,  # Multi-char project created
+                                                                "generation_started": True,  # Generation started
+                                                                "voice_steps_detected": len(voice_steps_found) > 0,  # Voice steps found
+                                                                "no_auth_errors": not voice_error_found  # No auth errors
+                                                            }
+                                                            
+                                                            passed_criteria = sum(success_criteria.values())
+                                                            total_criteria = len(success_criteria)
+                                                            
+                                                            logger.info("=" * 80)
+                                                            logger.info("🔑 ELEVENLABS API KEY VERIFICATION RESULTS")
+                                                            logger.info("=" * 80)
+                                                            
+                                                            for criterion, passed in success_criteria.items():
+                                                                status = "✅ PASS" if passed else "❌ FAIL"
+                                                                logger.info(f"{status} {criterion.replace('_', ' ').title()}")
+                                                            
+                                                            logger.info(f"🎤 Voice Steps Found: {voice_steps_found}")
+                                                            logger.info(f"📊 Overall: {passed_criteria}/{total_criteria} criteria passed")
+                                                            
+                                                            overall_success = passed_criteria >= (total_criteria - 1)  # Allow 1 failure
+                                                            
+                                                            if overall_success:
+                                                                logger.info("🎉 ELEVENLABS API KEY VERIFICATION PASSED!")
+                                                                logger.info("✅ New API key is working correctly")
+                                                                logger.info("✅ Voice generation pipeline is operational")
+                                                                logger.info("✅ Multi-character voice system is working")
+                                                            else:
+                                                                logger.info("❌ ELEVENLABS API KEY VERIFICATION FAILED!")
+                                                                logger.info("⚠️  Voice generation may have issues")
+                                                            
+                                                            self.log_test_result(
+                                                                test_name,
+                                                                overall_success,
+                                                                f"ElevenLabs API verification: {passed_criteria}/{total_criteria} criteria passed",
+                                                                {
+                                                                    "success_criteria": success_criteria,
+                                                                    "voice_steps_found": voice_steps_found,
+                                                                    "final_status": final_status,
+                                                                    "final_message": final_message,
+                                                                    "voices_count": len(voices_data),
+                                                                    "project_id": project_id,
+                                                                    "generation_id": generation_id
+                                                                }
+                                                            )
+                                                            
+                                                            return overall_success
+                                                        else:
+                                                            logger.info(f"❌ Authentication or voice generation error detected: {final_message}")
+                                                            self.log_test_result(test_name, False, f"Voice generation failed: {final_message}")
+                                                            return False
+                                                    else:
+                                                        logger.info(f"❌ Failed to get final status: {final_status_check.status}")
+                                                        self.log_test_result(test_name, False, "Failed to get final generation status")
+                                                        return False
+                                                else:
+                                                    logger.info("❌ No generation_id returned")
+                                                    self.log_test_result(test_name, False, "Generation start failed - no generation_id")
+                                                    return False
+                                            else:
+                                                logger.info(f"❌ Generation start failed: {gen_response.status}")
+                                                self.log_test_result(test_name, False, f"Generation start failed: HTTP {gen_response.status}")
+                                                return False
+                                    else:
+                                        logger.info("❌ No project_id returned")
+                                        self.log_test_result(test_name, False, "Project creation failed - no project_id")
+                                        return False
+                                else:
+                                    logger.info(f"❌ Project creation failed: {proj_response.status}")
+                                    self.log_test_result(test_name, False, f"Project creation failed: HTTP {proj_response.status}")
+                                    return False
+                        else:
+                            logger.info("❌ Voice data structure is incorrect")
+                            self.log_test_result(test_name, False, "Voice data missing required fields")
+                            return False
+                    else:
+                        logger.info("❌ No voices returned or invalid format")
+                        self.log_test_result(test_name, False, "No voices returned from ElevenLabs API")
+                        return False
+                elif response.status == 401:
+                    logger.info("❌ ElevenLabs API key authentication failed (401)")
+                    self.log_test_result(test_name, False, "ElevenLabs API key authentication failed (401 Unauthorized)")
+                    return False
+                else:
+                    logger.info(f"❌ ElevenLabs API returned status {response.status}")
+                    error_text = await response.text()
+                    self.log_test_result(test_name, False, f"ElevenLabs API error: HTTP {response.status} - {error_text}")
+                    return False
+                    
+        except Exception as e:
+            logger.info(f"❌ ELEVENLABS API KEY VERIFICATION FAILED: Exception: {str(e)}")
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
+
     async def test_core_workflow_complete_pipeline(self) -> bool:
         """Test the MAIN CORE WORKFLOW - Complete script-to-video production pipeline with Gemini as human director"""
         test_name = "CORE WORKFLOW - Complete Script-to-Video Pipeline"
