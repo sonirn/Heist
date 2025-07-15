@@ -129,20 +129,27 @@ class CoquiVoiceManager:
         logger.info("Coqui voice manager initialized in fallback mode")
     
     async def initialize_tts_engine(self):
-        """Initialize the Coqui TTS engine"""
+        """Initialize the TTS engine"""
         try:
             # Try to import and initialize TTS
-            from TTS.api import TTS
-            
-            # Initialize with a basic English model
-            self.tts_engine = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC")
-            self.fallback_mode = False
-            logger.info("Coqui TTS engine initialized successfully")
-            return True
+            try:
+                from TTS.api import TTS
+                # Initialize with a basic English model
+                self.tts_engine = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC")
+                self.fallback_mode = False
+                logger.info("Coqui TTS engine initialized successfully")
+                return True
+            except:
+                # Fall back to gTTS
+                from gtts import gTTS
+                self.tts_engine = gTTS
+                self.fallback_mode = True
+                logger.info("Using gTTS as fallback TTS engine")
+                return True
             
         except Exception as e:
-            logger.warning(f"Failed to initialize Coqui TTS engine: {str(e)}")
-            logger.info("Running in fallback mode with synthetic audio")
+            logger.warning(f"Failed to initialize TTS engine: {str(e)}")
+            logger.info("Running in synthetic audio mode")
             self.fallback_mode = True
             return False
     
