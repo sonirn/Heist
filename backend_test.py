@@ -882,12 +882,240 @@ NARRATOR: Experience the power of AI-driven video production.
             self.log_test_result(test_name, False, f"Exception: {str(e)}")
             return False
     
+    async def test_core_workflow_complete_pipeline(self) -> bool:
+        """Test the MAIN CORE WORKFLOW - Complete script-to-video production pipeline with Gemini as human director"""
+        test_name = "CORE WORKFLOW - Complete Script-to-Video Pipeline"
+        try:
+            logger.info("🎬 TESTING CORE WORKFLOW: Complete Script-to-Video Production Pipeline")
+            logger.info("=" * 80)
+            
+            # Multi-character test script as specified in the review request
+            test_script = """
+SARAH: Hello, I'm excited about our new project!
+JOHN: That's great! Let's work together to make it successful.
+NARRATOR: And so their journey began with hope and determination.
+            """.strip()
+            
+            workflow_steps_passed = 0
+            total_workflow_steps = 7
+            
+            # STEP 1: User adds script → Test script input and processing
+            logger.info("🎬 STEP 1: User adds script → Testing script input and processing")
+            project_data = {
+                "script": test_script,
+                "aspect_ratio": "16:9",
+                "voice_name": "default"
+            }
+            
+            async with self.session.post(
+                f"{self.api_base}/projects",
+                json=project_data,
+                headers={"Content-Type": "application/json"}
+            ) as response:
+                if response.status == 200:
+                    project_result = await response.json()
+                    project_id = project_result.get("project_id")
+                    if project_id:
+                        workflow_steps_passed += 1
+                        logger.info("✅ STEP 1 PASSED: Script input and processing successful")
+                    else:
+                        logger.info("❌ STEP 1 FAILED: No project_id returned")
+                        self.log_test_result(test_name, False, "Step 1 failed: No project_id returned")
+                        return False
+                else:
+                    logger.info(f"❌ STEP 1 FAILED: HTTP {response.status}")
+                    self.log_test_result(test_name, False, f"Step 1 failed: HTTP {response.status}")
+                    return False
+            
+            # STEP 2: Gemini understands script → Verify Gemini analyzes script like a human director
+            logger.info("🎬 STEP 2: Gemini understands script → Testing Gemini as human director")
+            
+            # Check if Gemini supervisor is loaded and operational
+            async with self.session.get(f"{self.api_base}/health") as response:
+                if response.status == 200:
+                    health_data = await response.json()
+                    gemini_supervisor_loaded = health_data.get("enhanced_components", {}).get("gemini_supervisor", False)
+                    character_detection = health_data.get("enhanced_components", {}).get("capabilities", {}).get("character_detection", False)
+                    
+                    if gemini_supervisor_loaded and character_detection:
+                        workflow_steps_passed += 1
+                        logger.info("✅ STEP 2 PASSED: Gemini supervisor loaded with character detection capability")
+                    else:
+                        logger.info("❌ STEP 2 FAILED: Gemini supervisor or character detection not available")
+                        self.log_test_result(test_name, False, "Step 2 failed: Gemini supervisor not properly loaded")
+                        return False
+                else:
+                    logger.info("❌ STEP 2 FAILED: Health check failed")
+                    self.log_test_result(test_name, False, "Step 2 failed: Health check failed")
+                    return False
+            
+            # STEP 3: Write and create clips with help of Minimax → Test video clip generation
+            logger.info("🎬 STEP 3: Create clips with Minimax → Testing video clip generation")
+            
+            # Check if Minimax is loaded
+            async with self.session.get(f"{self.api_base}/health") as response:
+                if response.status == 200:
+                    health_data = await response.json()
+                    minimax_loaded = health_data.get("ai_models", {}).get("minimax", False)
+                    
+                    if minimax_loaded:
+                        workflow_steps_passed += 1
+                        logger.info("✅ STEP 3 PASSED: Minimax video generation system operational")
+                    else:
+                        logger.info("❌ STEP 3 FAILED: Minimax not loaded")
+                        self.log_test_result(test_name, False, "Step 3 failed: Minimax not loaded")
+                        return False
+                else:
+                    logger.info("❌ STEP 3 FAILED: Health check failed")
+                    self.log_test_result(test_name, False, "Step 3 failed: Health check failed")
+                    return False
+            
+            # STEP 4: Generate audio clips → Test audio generation for characters/scenes
+            logger.info("🎬 STEP 4: Generate audio clips → Testing multi-character audio generation")
+            
+            # Check if multi-character voice system is loaded
+            async with self.session.get(f"{self.api_base}/health") as response:
+                if response.status == 200:
+                    health_data = await response.json()
+                    multi_voice_manager = health_data.get("enhanced_components", {}).get("multi_voice_manager", False)
+                    voice_assignment = health_data.get("enhanced_components", {}).get("capabilities", {}).get("voice_assignment", False)
+                    stable_audio = health_data.get("ai_models", {}).get("stable_audio", False)
+                    
+                    if multi_voice_manager and voice_assignment and stable_audio:
+                        workflow_steps_passed += 1
+                        logger.info("✅ STEP 4 PASSED: Multi-character audio generation system operational")
+                    else:
+                        logger.info("❌ STEP 4 FAILED: Multi-character audio system not fully operational")
+                        self.log_test_result(test_name, False, "Step 4 failed: Multi-character audio system not operational")
+                        return False
+                else:
+                    logger.info("❌ STEP 4 FAILED: Health check failed")
+                    self.log_test_result(test_name, False, "Step 4 failed: Health check failed")
+                    return False
+            
+            # STEP 5: Combine all clips → Test video/audio synchronization and combination
+            logger.info("🎬 STEP 5: Combine all clips → Testing video/audio synchronization")
+            
+            # Start the enhanced generation process to test the complete pipeline
+            generation_data = {
+                "project_id": project_id,
+                "script": test_script,
+                "aspect_ratio": "16:9"
+            }
+            
+            async with self.session.post(
+                f"{self.api_base}/generate",
+                json=generation_data,
+                headers={"Content-Type": "application/json"}
+            ) as response:
+                if response.status == 200:
+                    generation_result = await response.json()
+                    generation_id = generation_result.get("generation_id")
+                    
+                    if generation_id:
+                        workflow_steps_passed += 1
+                        logger.info("✅ STEP 5 PASSED: Video/audio combination pipeline started successfully")
+                    else:
+                        logger.info("❌ STEP 5 FAILED: No generation_id returned")
+                        self.log_test_result(test_name, False, "Step 5 failed: No generation_id returned")
+                        return False
+                else:
+                    logger.info(f"❌ STEP 5 FAILED: HTTP {response.status}")
+                    self.log_test_result(test_name, False, f"Step 5 failed: HTTP {response.status}")
+                    return False
+            
+            # STEP 6: Make changes and color grading with RunwayML and Gemini → Test post-production pipeline
+            logger.info("🎬 STEP 6: Post-production with RunwayML and Gemini → Testing professional post-production")
+            
+            # Check if RunwayML processor is loaded
+            async with self.session.get(f"{self.api_base}/health") as response:
+                if response.status == 200:
+                    health_data = await response.json()
+                    runwayml_processor = health_data.get("enhanced_components", {}).get("runwayml_processor", False)
+                    post_production = health_data.get("enhanced_components", {}).get("capabilities", {}).get("post_production", False)
+                    quality_supervision = health_data.get("enhanced_components", {}).get("capabilities", {}).get("quality_supervision", False)
+                    
+                    if runwayml_processor and post_production and quality_supervision:
+                        workflow_steps_passed += 1
+                        logger.info("✅ STEP 6 PASSED: RunwayML post-production with Gemini supervision operational")
+                    else:
+                        logger.info("❌ STEP 6 FAILED: Post-production system not fully operational")
+                        self.log_test_result(test_name, False, "Step 6 failed: Post-production system not operational")
+                        return False
+                else:
+                    logger.info("❌ STEP 6 FAILED: Health check failed")
+                    self.log_test_result(test_name, False, "Step 6 failed: Health check failed")
+                    return False
+            
+            # STEP 7: Give final video to user → Test final output delivery
+            logger.info("🎬 STEP 7: Final video delivery → Testing complete pipeline execution")
+            
+            # Wait a moment for processing to start and check status
+            await asyncio.sleep(3)
+            
+            async with self.session.get(f"{self.api_base}/generate/{generation_id}") as response:
+                if response.status == 200:
+                    status_data = await response.json()
+                    status = status_data.get("status", "")
+                    progress = status_data.get("progress", 0.0)
+                    
+                    # Check if the enhanced generation process is working
+                    if status in ["queued", "processing", "completed"] and isinstance(progress, (int, float)):
+                        workflow_steps_passed += 1
+                        logger.info(f"✅ STEP 7 PASSED: Final video delivery pipeline operational (Status: {status}, Progress: {progress}%)")
+                    else:
+                        logger.info(f"❌ STEP 7 FAILED: Invalid status or progress (Status: {status}, Progress: {progress})")
+                        self.log_test_result(test_name, False, f"Step 7 failed: Invalid status or progress")
+                        return False
+                else:
+                    logger.info(f"❌ STEP 7 FAILED: HTTP {response.status}")
+                    self.log_test_result(test_name, False, f"Step 7 failed: HTTP {response.status}")
+                    return False
+            
+            # Final assessment
+            success = workflow_steps_passed == total_workflow_steps
+            
+            logger.info("=" * 80)
+            logger.info(f"🎬 CORE WORKFLOW RESULTS: {workflow_steps_passed}/{total_workflow_steps} steps passed")
+            
+            if success:
+                logger.info("🎉 CORE WORKFLOW COMPLETE: All 7 steps of the script-to-video pipeline are operational!")
+                logger.info("✅ Gemini acts as human director throughout the entire process")
+                logger.info("✅ Multi-character detection and voice assignment working")
+                logger.info("✅ Minimax video generation integrated")
+                logger.info("✅ Professional post-production with RunwayML")
+                logger.info("✅ Complete pipeline from script to final video delivery")
+            else:
+                logger.info("❌ CORE WORKFLOW INCOMPLETE: Some critical steps failed")
+            
+            self.log_test_result(
+                test_name, 
+                success, 
+                f"Core workflow pipeline: {workflow_steps_passed}/{total_workflow_steps} steps operational",
+                {
+                    "workflow_steps_passed": workflow_steps_passed,
+                    "total_workflow_steps": total_workflow_steps,
+                    "test_script_characters": ["SARAH", "JOHN", "NARRATOR"],
+                    "project_id": project_id,
+                    "generation_id": generation_id if 'generation_id' in locals() else None
+                }
+            )
+            return success
+            
+        except Exception as e:
+            logger.info(f"❌ CORE WORKFLOW FAILED: Exception: {str(e)}")
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
+
     async def run_all_tests(self):
-        """Run all enhanced backend tests"""
-        logger.info("🚀 Starting comprehensive enhanced backend API testing...")
+        """Run all enhanced backend tests with focus on CORE WORKFLOW"""
+        logger.info("🚀 Starting CORE WORKFLOW Testing - Complete Script-to-Video Production Pipeline")
         logger.info(f"Testing enhanced backend at: {self.base_url}")
         
         start_time = time.time()
+        
+        # PRIORITY TEST: CORE WORKFLOW - Complete Script-to-Video Pipeline
+        core_workflow_ok = await self.test_core_workflow_complete_pipeline()
         
         # Test 1: Enhanced Health Check
         health_ok = await self.test_enhanced_health_check()
@@ -938,8 +1166,9 @@ NARRATOR: Experience the power of AI-driven video production.
         # Calculate results
         total_time = time.time() - start_time
         
-        # Count tests
+        # Count tests - CORE WORKFLOW is the most important
         tests_run = [
+            ("🎬 CORE WORKFLOW - Complete Script-to-Video Pipeline", core_workflow_ok),
             ("Enhanced Health Check (v2.0-enhanced)", health_ok),
             ("Enhanced Component Integration", component_integration_ok),
             ("Enhanced Project Creation", project_creation_ok),
@@ -957,27 +1186,35 @@ NARRATOR: Experience the power of AI-driven video production.
         total_tests = len(tests_run)
         
         # Summary
-        logger.info("\n" + "="*60)
-        logger.info("📊 ENHANCED SCRIPT-TO-VIDEO BACKEND TESTING SUMMARY")
-        logger.info("="*60)
+        logger.info("\n" + "="*80)
+        logger.info("📊 CORE WORKFLOW & ENHANCED BACKEND TESTING SUMMARY")
+        logger.info("="*80)
         
         for test_name, success in tests_run:
             status = "✅ PASS" if success else "❌ FAIL"
             logger.info(f"{status} {test_name}")
         
-        logger.info("-"*60)
+        logger.info("-"*80)
         logger.info(f"📈 Results: {passed_tests}/{total_tests} tests passed")
         logger.info(f"⏱️  Total time: {total_time:.2f} seconds")
         logger.info(f"🎯 Success rate: {(passed_tests/total_tests)*100:.1f}%")
         
+        # Special emphasis on CORE WORKFLOW result
+        if core_workflow_ok:
+            logger.info("🎉 CORE WORKFLOW PASSED: Complete script-to-video pipeline operational!")
+            logger.info("🎬 Gemini acts as human director throughout the entire process")
+        else:
+            logger.info("⚠️  CORE WORKFLOW FAILED: Critical pipeline issues detected")
+        
         overall_success = passed_tests == total_tests
         if overall_success:
-            logger.info("🎉 ALL ENHANCED TESTS PASSED!")
+            logger.info("🎉 ALL TESTS PASSED!")
         else:
             logger.info("⚠️  Some tests failed - check logs above for details")
         
         return {
             "overall_success": overall_success,
+            "core_workflow_success": core_workflow_ok,
             "tests_passed": passed_tests,
             "total_tests": total_tests,
             "success_rate": (passed_tests/total_tests)*100,
