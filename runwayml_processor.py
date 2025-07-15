@@ -18,6 +18,7 @@ import base64
 import requests
 import aiohttp
 import aiofiles
+import shutil
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
