@@ -253,8 +253,10 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "3.0-enhanced"
-  test_sequence: 5
+  test_sequence: 6
   run_ui: false
+  core_workflow_tested: true
+  core_workflow_success: true
 
 test_plan:
   current_focus: []
