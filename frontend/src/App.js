@@ -403,8 +403,12 @@ Finally, we'll demonstrate the real-time collaboration tools that keep your team
               <span className="stat-value">{aspectRatio}</span>
             </div>
             <div className="stat">
-              <span className="stat-label">Voice:</span>
-              <span className="stat-value">{voices.find(v => v.voice_id === selectedVoice)?.name || 'Default'}</span>
+              <span className="stat-label">Voice System:</span>
+              <span className="stat-value">Multi-Character AI</span>
+            </div>
+            <div className="stat">
+              <span className="stat-label">Quality:</span>
+              <span className="stat-value">Professional Grade</span>
             </div>
             <div className="stat">
               <span className="stat-label">Status:</span>
