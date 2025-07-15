@@ -433,9 +433,9 @@ async def process_enhanced_video_generation(generation_id: str, project_data: Di
         generation_status[generation_id]["progress"] = 15.0
         await broadcast_status(generation_id)
         
-        # Initialize the TTS engine if not already done
+        # Initialize the enhanced TTS engines if not already done
         if not hasattr(multi_voice_manager, 'tts_initialized'):
-            await multi_voice_manager.initialize_tts_engine()
+            await multi_voice_manager.initialize_tts_engines()
             multi_voice_manager.tts_initialized = True
         
         # Detect characters from script
