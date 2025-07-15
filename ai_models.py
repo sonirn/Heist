@@ -30,7 +30,16 @@ class StableAudioWrapper:
     
     def __init__(self):
         self.real_generator = get_stable_audio_generator()
-        self.loaded = self.real_generator.loaded
+        
+    @property
+    def loaded(self):
+        """Get current loaded state from real generator"""
+        return self.real_generator.loaded
+        
+    @property
+    def development_mode(self):
+        """Get current development mode from real generator"""
+        return getattr(self.real_generator, 'development_mode', False)
     
     def load_model(self):
         """Load the Stable Audio model"""
@@ -39,19 +48,7 @@ class StableAudioWrapper:
     def generate_audio(self, prompt: str, duration: float = 10.0, 
                       steps: int = 100, cfg_scale: float = 7.0,
                       seed: Optional[int] = None) -> bytes:
-        """
-        Generate audio from text prompt
-        
-        Args:
-            prompt: Text description of the audio
-            duration: Duration in seconds
-            steps: Number of diffusion steps
-            cfg_scale: Classifier-free guidance scale
-            seed: Random seed for reproducible results
-            
-        Returns:
-            bytes: Generated audio data (WAV format)
-        """
+        """Generate audio using real generator"""
         return self.real_generator.generate_audio(prompt, duration, steps, cfg_scale, seed)
 
 class WAN21VideoGenerator:
