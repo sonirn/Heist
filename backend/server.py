@@ -553,8 +553,17 @@ async def process_enhanced_video_generation(generation_id: str, project_data: Di
         # Save combined video for processing
         temp_video_path = f"/tmp/temp_video_{generation_id}.mp4"
         if video_clips:
-            # Use the first clip as temp (in production, we'd combine all clips first)
+            # For now, use the first clip as temp (in production, we'd combine all clips first)
             temp_video_path = video_clips[0]
+            
+            # Ensure the temp video file exists
+            if not os.path.exists(temp_video_path):
+                logger.error(f"Temporary video file not found: {temp_video_path}")
+                # Create a fallback if the file doesn't exist
+                temp_video_path = f"/tmp/fallback_video_{generation_id}.mp4"
+                # In development, create a placeholder file
+                with open(temp_video_path, 'w') as f:
+                    f.write("")  # Empty file as placeholder
         
         # Apply comprehensive post-production
         post_production_result = await runwayml_processor.comprehensive_post_production(
