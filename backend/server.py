@@ -573,7 +573,7 @@ async def health_check():
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
         "ai_models": {
-            "wan21": ai_manager.wan21_generator.loaded,
+            "minimax": ai_manager.minimax_generator.loaded,
             "stable_audio": ai_manager.stable_audio.loaded
         }
     }
