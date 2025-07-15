@@ -196,15 +196,16 @@ class MinimaxVideoGenerator:
                 # Use synthetic video generation in development mode
                 return self._generate_synthetic_video(prompt, aspect_ratio, duration)
             else:
-                # Prepare Minimax API payload
+                # Prepare Minimax API payload with correct structure
                 payload = {
-                    "model": "video-01",
                     "prompt": prompt,
-                    "aspect_ratio": aspect_ratio,
-                    "duration": duration,
-                    "fps": fps
+                    "model": "T2V-01"  # Use the standard text-to-video model
                 }
                 
+                # Add optional parameters
+                if aspect_ratio == "9:16":
+                    payload["model"] = "T2V-01"  # Minimax handles aspect ratio internally
+                    
                 if seed is not None:
                     payload["seed"] = seed
                     
