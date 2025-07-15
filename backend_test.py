@@ -1354,11 +1354,14 @@ NARRATOR: And so their journey began with hope and determination.
             return False
 
     async def run_all_tests(self):
-        """Run all enhanced backend tests with focus on CORE WORKFLOW"""
-        logger.info("🚀 Starting CORE WORKFLOW Testing - Complete Script-to-Video Production Pipeline")
+        """Run all enhanced backend tests with focus on VIDEO GENERATION PROGRESS MONITORING"""
+        logger.info("🚀 Starting VIDEO GENERATION PROGRESS MONITORING - Verifying no longer stuck at 0%")
         logger.info(f"Testing enhanced backend at: {self.base_url}")
         
         start_time = time.time()
+        
+        # PRIORITY TEST: VIDEO GENERATION PROGRESS MONITORING
+        progress_monitoring_ok = await self.test_video_generation_progress_monitoring()
         
         # PRIORITY TEST: CORE WORKFLOW - Complete Script-to-Video Pipeline
         core_workflow_ok = await self.test_core_workflow_complete_pipeline()
@@ -1412,8 +1415,9 @@ NARRATOR: And so their journey began with hope and determination.
         # Calculate results
         total_time = time.time() - start_time
         
-        # Count tests - CORE WORKFLOW is the most important
+        # Count tests - VIDEO GENERATION PROGRESS MONITORING is the most important
         tests_run = [
+            ("🎬 VIDEO GENERATION PROGRESS MONITORING", progress_monitoring_ok),
             ("🎬 CORE WORKFLOW - Complete Script-to-Video Pipeline", core_workflow_ok),
             ("Enhanced Health Check (v2.0-enhanced)", health_ok),
             ("Enhanced Component Integration", component_integration_ok),
@@ -1433,7 +1437,7 @@ NARRATOR: And so their journey began with hope and determination.
         
         # Summary
         logger.info("\n" + "="*80)
-        logger.info("📊 CORE WORKFLOW & ENHANCED BACKEND TESTING SUMMARY")
+        logger.info("📊 VIDEO GENERATION PROGRESS & ENHANCED BACKEND TESTING SUMMARY")
         logger.info("="*80)
         
         for test_name, success in tests_run:
@@ -1444,6 +1448,15 @@ NARRATOR: And so their journey began with hope and determination.
         logger.info(f"📈 Results: {passed_tests}/{total_tests} tests passed")
         logger.info(f"⏱️  Total time: {total_time:.2f} seconds")
         logger.info(f"🎯 Success rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        # Special emphasis on VIDEO GENERATION PROGRESS MONITORING result
+        if progress_monitoring_ok:
+            logger.info("🎉 VIDEO GENERATION PROGRESS MONITORING PASSED!")
+            logger.info("✅ Video generation is no longer stuck at 0% and progressing properly")
+            logger.info("✅ Enhanced 10-step pipeline with Gemini supervision is operational")
+        else:
+            logger.info("⚠️  VIDEO GENERATION PROGRESS MONITORING FAILED!")
+            logger.info("❌ Video generation may still be stuck or components not working")
         
         # Special emphasis on CORE WORKFLOW result
         if core_workflow_ok:
@@ -1460,6 +1473,7 @@ NARRATOR: And so their journey began with hope and determination.
         
         return {
             "overall_success": overall_success,
+            "progress_monitoring_success": progress_monitoring_ok,
             "core_workflow_success": core_workflow_ok,
             "tests_passed": passed_tests,
             "total_tests": total_tests,
