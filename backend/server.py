@@ -571,7 +571,6 @@ async def process_enhanced_video_generation(generation_id: str, project_data: Di
                         "completed_at": datetime.utcnow(),
                         "enhancement_data": {
                             "script_analysis": script_analysis,
-                            "voice_assignments": voice_assignments,
                             "editing_plan": editing_plan,
                             "post_production": post_production_result,
                             "final_assessment": final_assessment,
