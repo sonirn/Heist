@@ -479,6 +479,18 @@ class RunwayMLProcessor:
             # Simulate processing time
             await asyncio.sleep(0.5)
             
+            # In development mode, copy the original file to create a "processed" version
+            # This ensures the processed file actually exists
+            if os.path.exists(video_path):
+                import shutil
+                shutil.copy2(video_path, processed_path)
+                logger.info(f"Created processed video file: {processed_path}")
+            else:
+                # If input doesn't exist, create a placeholder
+                # This should not happen in normal operation
+                logger.warning(f"Input video {video_path} not found, creating placeholder")
+                processed_path = video_path
+            
             # In production, this would:
             # 1. Upload video to RunwayML
             # 2. Apply processing
