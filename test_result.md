@@ -132,7 +132,7 @@ backend:
           agent: "testing"
           comment: "Stable Audio Open model integration tested successfully. Model loaded correctly in development mode with fallback to synthetic audio generation. Health check confirms stable_audio: true. Model ready for different audio prompts (piano melody, nature sounds, electronic music). Real implementation available but running in development mode due to gated model access. Fallback mechanisms working properly for production deployment."
 
-  - task: "Production-Ready AI Models Infrastructure"
+  - task: "AI Models Manager - Updated for Minimax"
     implemented: true
     working: true
     file: "ai_models.py"
@@ -142,7 +142,7 @@ backend:
     status_history:
         - working: true
           agent: "main"
-          comment: "Production-ready AI models infrastructure completed with intelligent wrapper classes, proper property delegation, enhanced model status reporting, and comprehensive deployment guides. Both models working in development mode with sophisticated fallback systems. Health endpoint returning correct status. Ready for production deployment with real model weights."
+          comment: "Updated AIModelManager to use Minimax API instead of WAN 2.1. Implemented missing 'generate_content' method that supports both video and audio generation. Created MinimaxVideoGeneratorWrapper class for seamless integration. Maintains backward compatibility with 'wan21_generator' alias. Both video and audio generation working correctly with proper error handling and fallback mechanisms."
 
   - task: "Health Check Endpoint"
     implemented: true
