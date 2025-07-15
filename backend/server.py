@@ -130,11 +130,27 @@ GEMINI_MODEL_CONFIG = {
     },
     "editing_plan": {
         "model": "gemini-2.5-pro",
-        "description": "Intelligent video editing planning"
+        "description": "Intelligent video editing and transition planning",
+        "max_tokens": 4096,
+        "temperature": 0.4
     },
     "quality_supervision": {
         "model": "gemini-2.5-pro",
-        "description": "Final quality assessment and supervision"
+        "description": "Final quality assessment and supervision",
+        "max_tokens": 2048,
+        "temperature": 0.2
+    },
+    "scene_enhancement": {
+        "model": "gemini-2.5-pro",
+        "description": "Scene description enhancement for better video generation",
+        "max_tokens": 3072,
+        "temperature": 0.6
+    },
+    "story_understanding": {
+        "model": "gemini-2.5-pro",
+        "description": "Deep story comprehension and narrative flow",
+        "max_tokens": 8192,
+        "temperature": 0.3
     }
 }
 
