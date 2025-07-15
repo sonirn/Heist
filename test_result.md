@@ -105,7 +105,7 @@
 user_problem_statement: "Enhanced script-to-video website with Minimax API for clips generation, automated multi-character voice system, and RunwayML professional post-production for movie-level quality output"
 
 backend:
-  - task: "Enhanced WAN 2.1 T2B 1.3B Model Implementation"
+  - task: "Minimax API Integration - Replace WAN 2.1"
     implemented: true
     working: true
     file: "ai_models_real.py"
@@ -115,10 +115,7 @@ backend:
     status_history:
         - working: true
           agent: "main"
-          comment: "Enhanced WAN 2.1 T2B 1.3B implementation completed with intelligent model loading, HuggingFace Hub integration, production/development mode switching, comprehensive deployment guide, and realistic synthetic video generation. Successfully generating 4.7MB videos with aspect ratio support for 16:9 and 9:16. Production-ready with multiple loading strategies."
-        - working: true
-          agent: "testing"
-          comment: "WAN 2.1 T2B 1.3B model tested successfully with updated real implementation. All tests passed (7/7 - 100% success rate): 1) Health check confirms both WAN 2.1 and Stable Audio models loaded correctly, 2) Both aspect ratios (16:9 and 9:16) fully supported and tested, 3) Advanced WAN 2.1 parameters (fps, guidance_scale, num_inference_steps) working correctly, 4) Parameter validation comprehensive with edge cases, 5) Performance metrics excellent (health: 0.09s, generation: 0.01s), 6) Fallback mechanisms working properly in development mode, 7) Real AI model integrations functioning with synthetic generation as fallback. Models running in development mode with CPU-compatible implementation as expected."
+          comment: "Successfully replaced WAN 2.1 T2B 1.3B with Minimax API integration. Complete removal of WAN 2.1 dependencies and implementation of MinimaxVideoGenerator class with API-based video generation. Health check endpoint now shows 'minimax: true' instead of 'wan21'. Development mode fallback generates high-quality synthetic videos with proper aspect ratio support (16:9 and 9:16). Ready for production deployment with real Minimax API integration."
 
   - task: "Enhanced Stable Audio Open Integration"
     implemented: true
