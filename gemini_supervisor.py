@@ -221,6 +221,61 @@ Always provide detailed, actionable feedback and maintain high quality standards
             }
         }
     
+    async def break_script_into_scenes(self, script: str) -> List[Dict[str, Any]]:
+        """
+        Break script into individual scenes for video generation
+        
+        Args:
+            script: Input script text
+            
+        Returns:
+            List of scene dictionaries
+        """
+        try:
+            # Split script into sentences for scene creation
+            sentences = [s.strip() for s in script.split('.') if s.strip()]
+            
+            scenes = []
+            for i, sentence in enumerate(sentences):
+                if sentence:
+                    scenes.append({
+                        "scene_number": i + 1,
+                        "description": sentence.strip(),
+                        "duration": 5,  # Default 5 seconds per scene
+                        "visual_mood": "neutral",
+                        "camera_suggestions": "medium shot",
+                        "lighting_mood": "natural",
+                        "audio_text": sentence.strip()
+                    })
+            
+            # If no scenes created, create a single scene with entire script
+            if not scenes:
+                scenes = [{
+                    "scene_number": 1,
+                    "description": script,
+                    "duration": 10,
+                    "visual_mood": "neutral",
+                    "camera_suggestions": "medium shot", 
+                    "lighting_mood": "natural",
+                    "audio_text": script
+                }]
+            
+            logger.info(f"Script broken into {len(scenes)} scenes")
+            return scenes
+            
+        except Exception as e:
+            logger.error(f"Scene breaking failed: {str(e)}")
+            # Return single scene as fallback
+            return [{
+                "scene_number": 1,
+                "description": script,
+                "duration": 10,
+                "visual_mood": "neutral",
+                "camera_suggestions": "medium shot",
+                "lighting_mood": "natural",
+                "audio_text": script
+            }]
+    
     async def assign_character_voices(self, characters: List[Dict], available_voices: List[Dict]) -> Dict[str, Dict]:
         """
         Intelligently assign voices to characters based on personality and traits
