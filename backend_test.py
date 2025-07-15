@@ -112,12 +112,21 @@ class BackendTester:
             self.log_test_result(test_name, False, f"Exception: {str(e)}")
             return False
     
-    async def test_project_creation(self) -> Optional[str]:
-        """Test project creation endpoint"""
-        test_name = "Project Creation"
+    async def test_enhanced_project_creation(self) -> Optional[str]:
+        """Test project creation with multi-character script"""
+        test_name = "Enhanced Project Creation"
         try:
+            # Use the test script from the review request
             project_data = {
-                "script": "A beautiful sunrise over mountains with birds flying in the sky. The scene is peaceful and serene.",
+                "script": """
+NARRATOR: Welcome to the future of technology.
+
+SARAH: This new system is amazing! It can handle multiple characters automatically.
+
+JOHN: I agree, Sarah. The quality is incredible.
+
+NARRATOR: Experience the power of AI-driven video production.
+                """.strip(),
                 "aspect_ratio": "16:9",
                 "voice_name": "default"
             }
@@ -144,7 +153,7 @@ class BackendTester:
                         self.log_test_result(test_name, False, "No project_id returned", data)
                         return None
                     
-                    self.log_test_result(test_name, True, f"Project created successfully: {project_id}", data)
+                    self.log_test_result(test_name, True, f"Enhanced project created successfully: {project_id}", data)
                     return project_id
                 else:
                     error_text = await response.text()
