@@ -313,29 +313,32 @@ class MinimaxVideoGenerator:
     def _process_video_response(self, response):
         """Process Minimax API response and download video"""
         try:
-            if not response or "file_id" not in response:
+            if not response:
                 logger.error("Invalid response format")
                 return None
             
-            file_id = response["file_id"]
-            
-            # Step 3: Download the generated video
-            download_url = f"{self.api_base_url}/files/retrieve"
-            
-            download_response = requests.get(
-                download_url,
-                headers=self.headers,
-                params={"file_id": file_id},
-                timeout=60
-            )
-            
-            if download_response.status_code == 200:
-                # The response should contain a download URL or video data
-                download_data = download_response.json()
+            # The response should contain the video URL directly
+            if "video_url" in response:
+                video_url = response["video_url"]
                 
-                if "url" in download_data:
-                    # Download video from URL
-                    video_url = download_data["url"]
+                # Download video from URL
+                video_response = requests.get(video_url, timeout=120)
+                
+                if video_response.status_code == 200:
+                    logger.info(f"Downloaded video: {len(video_response.content)} bytes")
+                    return video_response.content
+                else:
+                    logger.error(f"Failed to download video from: {video_url}")
+                    return None
+            
+            elif "file_id" in response:
+                # Some versions might return a file_id that needs to be retrieved
+                file_id = response["file_id"]
+                logger.info(f"Got file_id: {file_id}")
+                
+                # Try to construct download URL or use existing video URL
+                if "video_url" in response:
+                    video_url = response["video_url"]
                     video_response = requests.get(video_url, timeout=120)
                     
                     if video_response.status_code == 200:
@@ -344,22 +347,13 @@ class MinimaxVideoGenerator:
                     else:
                         logger.error(f"Failed to download video from: {video_url}")
                         return None
-                
-                elif "data" in download_data:
-                    # Video data provided directly
-                    if isinstance(download_data["data"], str):
-                        # Base64 encoded video
-                        video_bytes = base64.b64decode(download_data["data"])
-                        logger.info(f"Decoded video: {len(video_bytes)} bytes")
-                        return video_bytes
-                    else:
-                        logger.error("Unexpected video data format")
-                        return None
                 else:
-                    logger.error("No download URL or video data in response")
+                    logger.error("No video URL found with file_id")
                     return None
+            
             else:
-                logger.error(f"Failed to retrieve video: {download_response.status_code}")
+                logger.error("No video URL or file_id in response")
+                logger.error(f"Response keys: {list(response.keys())}")
                 return None
             
         except Exception as e:
