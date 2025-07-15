@@ -160,19 +160,26 @@ RUNWAYML_API_KEYS = [
     os.getenv("RUNWAYML_API_KEY2", "key_9b2398b5671c2b442e10e656f96bc9bc4712319f16d67c2027b5b1296601a3ecfa7a545b997b93f5f3cb34deedef0211facaf057c64a31fd558399617abdd8aa")
 ]
 
-# Cloudflare R2 configuration
-R2_ENDPOINT = "https://69317cc9622018bb255db5a590d143c2.r2.cloudflarestorage.com"
-R2_ACCESS_KEY = "7804ed0f387a54af1eafbe2659c062f7"
-R2_SECRET_KEY = "c94fe3a0d93c4594c8891b4f7fc54e5f26c76231972d8a4d0d8260bb6da61788"
+# Enhanced Cloudflare R2 Storage Configuration
+R2_ENDPOINT = os.getenv("R2_ENDPOINT", "https://69317cc9622018bb255db5a590d143c2.r2.cloudflarestorage.com")
+R2_ACCESS_KEY = os.getenv("R2_ACCESS_KEY", "7804ed0f387a54af1eafbe2659c062f7")
+R2_SECRET_KEY = os.getenv("R2_SECRET_KEY", "c94fe3a0d93c4594c8891b4f7fc54e5f26c76231972d8a4d0d8260bb6da61788")
+R2_BUCKET_NAME = os.getenv("R2_BUCKET_NAME", "script-to-video-storage")
 
-# R2 client
-r2_client = boto3.client(
-    's3',
-    endpoint_url=R2_ENDPOINT,
-    aws_access_key_id=R2_ACCESS_KEY,
-    aws_secret_access_key=R2_SECRET_KEY,
-    config=Config(signature_version='s3v4'),
-)
+# Enhanced R2 client with proper error handling
+try:
+    r2_client = boto3.client(
+        's3',
+        endpoint_url=R2_ENDPOINT,
+        aws_access_key_id=R2_ACCESS_KEY,
+        aws_secret_access_key=R2_SECRET_KEY,
+        config=Config(signature_version='s3v4', region_name='auto'),
+        verify=True
+    )
+    logger.info("R2 Storage client initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize R2 Storage client: {e}")
+    r2_client = None
 
 # Global variables
 current_gemini_key_index = 0
