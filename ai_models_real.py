@@ -71,7 +71,7 @@ class MinimaxVideoGenerator:
         }
         
         # Minimax API configuration
-        self.api_base_url = "https://api.minimax.chat/v1"
+        self.api_base_url = "https://api.minimaxi.chat/v1"
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
