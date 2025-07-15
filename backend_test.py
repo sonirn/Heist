@@ -44,41 +44,65 @@ class BackendTester:
             "timestamp": datetime.now().isoformat()
         }
     
-    async def test_health_check(self) -> bool:
-        """Test the health check endpoint with WAN 2.1 model status"""
-        test_name = "Health Check (WAN 2.1)"
+    async def test_enhanced_health_check(self) -> bool:
+        """Test the enhanced health check endpoint with all new components"""
+        test_name = "Enhanced Health Check (v2.0-enhanced)"
         try:
             async with self.session.get(f"{self.api_base}/health") as response:
                 if response.status == 200:
                     data = await response.json()
                     
                     # Check required fields
-                    required_fields = ["status", "timestamp", "ai_models"]
+                    required_fields = ["status", "timestamp", "ai_models", "enhanced_components", "version"]
                     missing_fields = [field for field in required_fields if field not in data]
                     
                     if missing_fields:
                         self.log_test_result(test_name, False, f"Missing fields: {missing_fields}", data)
                         return False
                     
-                    # Check AI models status - specifically WAN 2.1
+                    # Check version is enhanced
+                    version = data.get("version", "")
+                    if version != "2.0-enhanced":
+                        self.log_test_result(test_name, False, f"Expected version '2.0-enhanced', got '{version}'", data)
+                        return False
+                    
+                    # Check AI models status - now Minimax instead of WAN 2.1
                     ai_models = data.get("ai_models", {})
-                    wan21_loaded = ai_models.get("wan21", False)
+                    minimax_loaded = ai_models.get("minimax", False)
                     stable_audio_loaded = ai_models.get("stable_audio", False)
                     
-                    if not wan21_loaded:
-                        self.log_test_result(test_name, False, f"WAN 2.1 model not loaded: wan21={wan21_loaded}", data)
+                    if not minimax_loaded:
+                        self.log_test_result(test_name, False, f"Minimax model not loaded: minimax={minimax_loaded}", data)
                         return False
                     
                     if not stable_audio_loaded:
                         self.log_test_result(test_name, False, f"Stable Audio model not loaded: stable_audio={stable_audio_loaded}", data)
                         return False
                     
+                    # Check enhanced components
+                    enhanced_components = data.get("enhanced_components", {})
+                    required_components = ["gemini_supervisor", "runwayml_processor", "multi_voice_manager"]
+                    
+                    for component in required_components:
+                        if not enhanced_components.get(component, False):
+                            self.log_test_result(test_name, False, f"Enhanced component not loaded: {component}", data)
+                            return False
+                    
+                    # Check capabilities
+                    capabilities = enhanced_components.get("capabilities", {})
+                    required_capabilities = ["character_detection", "voice_assignment", "video_validation", "post_production", "quality_supervision"]
+                    
+                    for capability in required_capabilities:
+                        if not capabilities.get(capability, False):
+                            self.log_test_result(test_name, False, f"Required capability missing: {capability}", data)
+                            return False
+                    
                     # Verify status is healthy
                     if data.get("status") != "healthy":
                         self.log_test_result(test_name, False, f"Unhealthy status: {data.get('status')}", data)
                         return False
                     
-                    self.log_test_result(test_name, True, "Health check passed, WAN 2.1 and Stable Audio models loaded", data)
+                    self.log_test_result(test_name, True, "Enhanced health check passed with all components loaded", data)
                     return True
                 else:
                     self.log_test_result(test_name, False, f"HTTP {response.status}", {"status": response.status})
