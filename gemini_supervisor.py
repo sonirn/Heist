@@ -523,6 +523,11 @@ Always provide detailed, actionable feedback and maintain high quality standards
             Dict containing final quality assessment and approval
         """
         try:
+            # Check if video file exists
+            if not os.path.exists(final_video_path):
+                logger.error(f"Final video file not found: {final_video_path}")
+                return self._create_fallback_final_assessment()
+            
             # Create file content for Gemini
             video_file = FileContentWithMimeType(
                 file_path=final_video_path,
