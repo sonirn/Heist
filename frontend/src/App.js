@@ -18,6 +18,7 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
   const wsRef = useRef(null);
+  const pollingIntervalRef = useRef(null);
 
   // Load voices on component mount
   useEffect(() => {
