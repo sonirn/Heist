@@ -285,7 +285,7 @@ class GeminiManager:
 
 class ElevenLabsManager:
     def __init__(self):
-        self.api_key = ELEVENLABS_API_KEY
+        self.api_key = os.getenv("ELEVENLABS_API_KEY", "sk_f4dafe7e83f0d71c67d13a006e39c19acc4c28c87860b8dc")
         self.base_url = "https://api.elevenlabs.io/v1"
         self.default_voice_id = "21m00Tcm4TlvDq8ikWAM"  # Default voice
     
