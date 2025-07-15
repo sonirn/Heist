@@ -225,13 +225,21 @@ NARRATOR: Experience the power of AI-driven video production.
             self.log_test_result(test_name, False, f"Exception: {str(e)}")
             return False
     
-    async def test_generation_start(self, project_id: str) -> Optional[str]:
-        """Test starting video generation"""
-        test_name = "Start Generation"
+    async def test_enhanced_generation_start(self, project_id: str) -> Optional[str]:
+        """Test enhanced video generation with 10-step process"""
+        test_name = "Enhanced Generation Start"
         try:
             generation_data = {
                 "project_id": project_id,
-                "script": "A peaceful mountain landscape at sunrise with gentle clouds.",
+                "script": """
+NARRATOR: Welcome to the future of technology.
+
+SARAH: This new system is amazing! It can handle multiple characters automatically.
+
+JOHN: I agree, Sarah. The quality is incredible.
+
+NARRATOR: Experience the power of AI-driven video production.
+                """.strip(),
                 "aspect_ratio": "16:9"
             }
             
@@ -257,7 +265,7 @@ NARRATOR: Experience the power of AI-driven video production.
                         self.log_test_result(test_name, False, "No generation_id returned", data)
                         return None
                     
-                    self.log_test_result(test_name, True, f"Generation started: {generation_id}", data)
+                    self.log_test_result(test_name, True, f"Enhanced generation started: {generation_id}", data)
                     return generation_id
                 else:
                     error_text = await response.text()
