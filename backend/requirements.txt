@@ -31,3 +31,4 @@ Pillow==11.0.0
 scipy==1.15.3
 scikit-learn==1.7.0
 emergentintegrations --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/
+stable-audio-tools==0.0.19
