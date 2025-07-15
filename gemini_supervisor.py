@@ -92,7 +92,7 @@ Always provide detailed, actionable feedback and maintain high quality standards
                 api_key=api_key,
                 session_id=self.session_id,
                 system_message=system_message
-            ).with_model("gemini", "gemini-2.0-flash-exp")
+            ).with_model("gemini", "gemini-2.5-pro")
             
             logger.info("Gemini Supervisor chat session initialized")
             
