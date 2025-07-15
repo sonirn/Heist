@@ -849,7 +849,7 @@ class BackendTester:
 async def main():
     """Main test runner"""
     # Get backend URL from environment
-    backend_url = "https://0b6015dd-2d6b-497a-98c3-c14901b86ad7.preview.emergentagent.com"
+    backend_url = "https://399376ba-6c7d-4912-81ad-4f3fb847717d.preview.emergentagent.com"
     
     async with BackendTester(backend_url) as tester:
         results = await tester.run_all_tests()
