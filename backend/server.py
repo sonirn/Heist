@@ -560,41 +560,10 @@ class GeminiManager:
         
         return response or scene_description
     
-    async def generate_video_prompt(self, scene_description: str) -> str:
-        """Generate optimized prompt for video generation"""
-        try:
-            api_key = self.get_next_key()
-            session_id = f"prompt_gen_{uuid.uuid4()}"
-            
-            chat = LlmChat(
-                api_key=api_key,
-                session_id=session_id,
-                system_message="You are a video generation prompt optimizer. Convert scene descriptions into optimized prompts for AI video generation."
-            ).with_model("gemini", "gemini-2.0-flash")
-            
-            prompt = f"""
-            Convert this scene description into an optimized prompt for AI video generation:
-            
-            Scene: {scene_description}
-            
-            Create a detailed, cinematic prompt that includes:
-            - Visual style and mood
-            - Camera movements and angles
-            - Lighting conditions
-            - Color palette
-            - Any specific details
-            
-            Keep it concise but descriptive. Return only the optimized prompt.
-            """
-            
-            message = UserMessage(text=prompt)
-            response = await chat.send_message(message)
-            
-            return response.strip()
-            
-        except Exception as e:
-            logger.error(f"Prompt generation failed: {str(e)}")
-            return scene_description
+    async def generate_video_prompt(self, scene_description: str, scene_context: Dict = None) -> str:
+        """Generate enhanced, optimized prompt for video generation"""
+        # Use the enhanced method
+        return await self.generate_enhanced_video_prompt(scene_description, scene_context)
 
 # --- Storage Functions ---
 
