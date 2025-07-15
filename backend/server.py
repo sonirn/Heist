@@ -53,9 +53,14 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from gemini_supervisor import get_gemini_supervisor
+from gemini_supervisor import GeminiSupervisor
 from runwayml_processor import get_runwayml_processor
 from enhanced_coqui_voice_manager import get_enhanced_coqui_voice_manager
+
+# Create a function to get supervisor without circular import
+def get_gemini_supervisor(api_keys):
+    """Get Gemini supervisor instance"""
+    return GeminiSupervisor(api_keys)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
