@@ -211,13 +211,11 @@ class MinimaxVideoGenerator:
                 # Prepare Minimax API payload with correct structure
                 payload = {
                     "prompt": prompt,
-                    "model": "T2V-01"  # Use the standard text-to-video model
+                    "model": "video-01",
+                    "prompt_optimizer": True
                 }
                 
-                # Add optional parameters
-                if aspect_ratio == "9:16":
-                    payload["model"] = "T2V-01"  # Minimax handles aspect ratio internally
-                    
+                # Add optional parameters if provided
                 if seed is not None:
                     payload["seed"] = seed
                     
