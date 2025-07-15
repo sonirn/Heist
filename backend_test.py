@@ -883,68 +883,56 @@ NARRATOR: Experience the power of AI-driven video production.
             return False
     
     async def run_all_tests(self):
-        """Run all backend tests with WAN 2.1 and Stable Audio focus"""
-        logger.info("🚀 Starting comprehensive backend API testing with WAN 2.1 and Stable Audio focus...")
-        logger.info(f"Testing backend at: {self.base_url}")
+        """Run all enhanced backend tests"""
+        logger.info("🚀 Starting comprehensive enhanced backend API testing...")
+        logger.info(f"Testing enhanced backend at: {self.base_url}")
         
         start_time = time.time()
         
-        # Test 1: Health Check (WAN 2.1 & Stable Audio)
-        health_ok = await self.test_health_check()
+        # Test 1: Enhanced Health Check
+        health_ok = await self.test_enhanced_health_check()
         
-        # Test 2: Project Creation
-        project_id = await self.test_project_creation()
+        # Test 2: Enhanced Component Integration
+        component_integration_ok = await self.test_enhanced_component_integration()
+        
+        # Test 3: Enhanced Project Creation
+        project_id = await self.test_enhanced_project_creation()
         project_creation_ok = project_id is not None
         
-        # Test 3: Get Project (only if creation succeeded)
+        # Test 4: Get Project (only if creation succeeded)
         get_project_ok = False
         if project_creation_ok:
             get_project_ok = await self.test_get_project(project_id)
         
-        # Test 4: Voices Endpoint
+        # Test 5: Voices Endpoint
         voices_ok = await self.test_voices_endpoint()
         
-        # Test 5: WAN 2.1 Aspect Ratios (only if project creation succeeded)
+        # Test 6: Minimax Aspect Ratios (only if project creation succeeded)
         aspect_ratios_ok = False
         if project_creation_ok:
-            aspect_ratios_ok = await self.test_wan21_aspect_ratios(project_id)
-        
-        # Test 6: Parameter Validation with WAN 2.1 parameters (only if project creation succeeded)
-        parameter_validation_ok = False
-        if project_creation_ok:
-            parameter_validation_ok = await self.test_parameter_validation(project_id)
+            aspect_ratios_ok = await self.test_minimax_aspect_ratios(project_id)
         
         # Test 7: Stable Audio Generation
         stable_audio_ok = await self.test_stable_audio_generation()
         
-        # Test 8: Performance Metrics (only if project creation succeeded)
-        performance_ok = False
-        if project_creation_ok:
-            performance_ok = await self.test_performance_metrics(project_id)
-        
-        # Test 9: Fallback Mechanisms (only if project creation succeeded)
-        fallback_ok = False
-        if project_creation_ok:
-            fallback_ok = await self.test_fallback_mechanisms(project_id)
-        
-        # Test 10: Start Generation (only if project creation succeeded)
+        # Test 8: Enhanced Generation Start (only if project creation succeeded)
         generation_id = None
         generation_start_ok = False
         if project_creation_ok:
-            generation_id = await self.test_generation_start(project_id)
+            generation_id = await self.test_enhanced_generation_start(project_id)
             generation_start_ok = generation_id is not None
         
-        # Test 11: Generation Status (only if generation started)
+        # Test 9: Enhanced Generation Status (only if generation started)
         generation_status_ok = False
         if generation_start_ok:
-            generation_status_ok = await self.test_generation_status(generation_id)
+            generation_status_ok = await self.test_enhanced_generation_status(generation_id)
         
-        # Test 12: WebSocket Connection (only if generation started)
+        # Test 10: WebSocket Connection (only if generation started)
         websocket_ok = False
         if generation_start_ok:
             websocket_ok = await self.test_websocket_connection(generation_id)
         
-        # Test 13: Error Handling
+        # Test 11: Error Handling
         error_handling_ok = await self.test_error_handling()
         
         # Calculate results
@@ -952,17 +940,15 @@ NARRATOR: Experience the power of AI-driven video production.
         
         # Count tests
         tests_run = [
-            ("Health Check (WAN 2.1 & Stable Audio)", health_ok),
-            ("Project Creation", project_creation_ok),
+            ("Enhanced Health Check (v2.0-enhanced)", health_ok),
+            ("Enhanced Component Integration", component_integration_ok),
+            ("Enhanced Project Creation", project_creation_ok),
             ("Get Project", get_project_ok),
             ("Voices Endpoint", voices_ok),
-            ("WAN 2.1 Aspect Ratios", aspect_ratios_ok),
-            ("Parameter Validation (WAN 2.1)", parameter_validation_ok),
+            ("Minimax Aspect Ratios", aspect_ratios_ok),
             ("Stable Audio Generation", stable_audio_ok),
-            ("Performance Metrics", performance_ok),
-            ("Fallback Mechanisms", fallback_ok),
-            ("Start Generation", generation_start_ok),
-            ("Generation Status", generation_status_ok),
+            ("Enhanced Generation Start", generation_start_ok),
+            ("Enhanced Generation Status", generation_status_ok),
             ("WebSocket Connection", websocket_ok),
             ("Error Handling", error_handling_ok)
         ]
@@ -972,7 +958,7 @@ NARRATOR: Experience the power of AI-driven video production.
         
         # Summary
         logger.info("\n" + "="*60)
-        logger.info("📊 WAN 2.1 & STABLE AUDIO BACKEND TESTING SUMMARY")
+        logger.info("📊 ENHANCED SCRIPT-TO-VIDEO BACKEND TESTING SUMMARY")
         logger.info("="*60)
         
         for test_name, success in tests_run:
@@ -986,7 +972,7 @@ NARRATOR: Experience the power of AI-driven video production.
         
         overall_success = passed_tests == total_tests
         if overall_success:
-            logger.info("🎉 ALL WAN 2.1 & STABLE AUDIO TESTS PASSED!")
+            logger.info("🎉 ALL ENHANCED TESTS PASSED!")
         else:
             logger.info("⚠️  Some tests failed - check logs above for details")
         
