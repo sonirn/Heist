@@ -292,10 +292,11 @@ metadata:
   core_workflow_success: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Critical Bug Fixes - Problem.md Issues Resolution"
   stuck_tasks: []
   test_all: false
-  test_priority: "completed"
+  test_priority: "critical_fixes_first"
 
 agent_communication:
     - agent: "main"
