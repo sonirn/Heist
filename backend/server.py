@@ -83,11 +83,48 @@ db = None
 
 # Environment variables
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
+# Enhanced Gemini API configuration with smart multi-key, multi-model system
 GEMINI_API_KEYS = [
     "AIzaSyBwVEDRvZ2bHppZj2zN4opMqxjzcxpJCDk",
     "AIzaSyB-VMWQe_Bvx6j_iixXTVGRB0fx0RpQSLU",
     "AIzaSyD36dRBkEZUyCpDHLxTVuMO4P98SsYjkbc"
 ]
+
+# Smart model configuration for different tasks
+GEMINI_MODEL_CONFIG = {
+    "script_analysis": {
+        "model": "gemini-2.5-pro",
+        "description": "Complex script analysis with character detection"
+    },
+    "scene_breaking": {
+        "model": "gemini-2.5-flash",
+        "description": "Fast scene breakdown and segmentation"
+    },
+    "video_prompt": {
+        "model": "gemini-2.0-flash-exp",
+        "description": "Creative video prompt generation"
+    },
+    "character_detection": {
+        "model": "gemini-1.5-pro",
+        "description": "Advanced character personality analysis"
+    },
+    "voice_assignment": {
+        "model": "gemini-2.0-flash",
+        "description": "Intelligent voice matching"
+    },
+    "video_validation": {
+        "model": "gemini-1.5-flash",
+        "description": "Quick video quality validation"
+    },
+    "editing_plan": {
+        "model": "gemini-2.5-flash",
+        "description": "Intelligent video editing planning"
+    },
+    "quality_supervision": {
+        "model": "gemini-2.5-pro",
+        "description": "Final quality assessment and supervision"
+    }
+}
 
 # RunwayML API keys
 RUNWAYML_API_KEYS = [
