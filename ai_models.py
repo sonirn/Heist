@@ -69,10 +69,9 @@ class WAN21VideoGenerator:
             device: Device to run the model on ('cpu' or 'cuda')
             model_path: Path to WAN 2.1 model weights directory
         """
-        self.real_generator = get_wan21_generator()
+        self.real_generator = get_wan21_generator(device)
         self.device = device
         self.model_path = model_path
-        self.loaded = self.real_generator.loaded
         
         # WAN 2.1 T2B 1.3B supported aspect ratios
         self.supported_aspect_ratios = self.real_generator.supported_aspect_ratios
@@ -81,6 +80,16 @@ class WAN21VideoGenerator:
         self.model_specs = self.real_generator.model_specs
         
         logger.info(f"WAN 2.1 T2B 1.3B initialized for {device}")
+        
+    @property
+    def loaded(self):
+        """Get current loaded state from real generator"""
+        return self.real_generator.loaded
+        
+    @property
+    def development_mode(self):
+        """Get current development mode from real generator"""
+        return getattr(self.real_generator, 'development_mode', False)
         
     def get_model_info(self) -> Dict[str, Any]:
         """
