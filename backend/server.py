@@ -951,21 +951,32 @@ async def process_enhanced_video_generation(generation_id: str, project_data: Di
             project_data["script"]
         )
         
-        # Step 9: Upload to R2
-        generation_status[generation_id]["message"] = "Uploading final video..."
+        # Step 9: Enhanced Upload to R2 Storage with Retry
+        generation_status[generation_id]["message"] = "Uploading final video to cloud storage..."
         generation_status[generation_id]["progress"] = 98.0
         await broadcast_status(generation_id)
         
+        # Ensure R2 bucket exists
+        await create_r2_bucket_if_not_exists()
+        
         video_url = None
         if os.path.exists(final_video_path):
-            with open(final_video_path, 'rb') as f:
-                video_content = f.read()
+            # Use enhanced upload with retry
+            video_url = await upload_video_with_retry(final_video_path, generation_id)
             
-            video_url = await upload_to_r2(
-                video_content,
-                f"videos/enhanced_{generation_id}.mp4",
-                "video/mp4"
-            )
+            if not video_url:
+                # Fallback to original upload method
+                logger.warning("Enhanced upload failed, trying fallback method")
+                with open(final_video_path, 'rb') as f:
+                    video_content = f.read()
+                
+                video_url = await upload_to_r2(
+                    video_content,
+                    f"videos/enhanced_{generation_id}.mp4",
+                    "video/mp4"
+                )
+        else:
+            logger.error(f"Final video file not found: {final_video_path}")
         
         # Step 10: Complete Generation
         if video_url:
