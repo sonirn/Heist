@@ -276,7 +276,87 @@ NARRATOR: Experience the power of AI-driven video production.
             self.log_test_result(test_name, False, f"Exception: {str(e)}")
             return None
     
-    async def test_wan21_aspect_ratios(self, project_id: str) -> bool:
+    async def test_enhanced_component_integration(self) -> bool:
+        """Test integration of all enhanced components"""
+        test_name = "Enhanced Component Integration"
+        try:
+            integration_tests_passed = 0
+            total_integration_tests = 4
+            
+            # Test 1: Health check shows all components
+            async with self.session.get(f"{self.api_base}/health") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    enhanced_components = data.get("enhanced_components", {})
+                    
+                    required_components = ["gemini_supervisor", "runwayml_processor", "multi_voice_manager"]
+                    all_loaded = all(enhanced_components.get(comp, False) for comp in required_components)
+                    
+                    if all_loaded:
+                        integration_tests_passed += 1
+                        logger.info("✅ All enhanced components loaded")
+                    else:
+                        logger.info("❌ Not all enhanced components loaded")
+                else:
+                    logger.info("❌ Health check failed")
+            
+            # Test 2: Version shows enhanced
+            async with self.session.get(f"{self.api_base}/health") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data.get("version") == "2.0-enhanced":
+                        integration_tests_passed += 1
+                        logger.info("✅ Version shows 2.0-enhanced")
+                    else:
+                        logger.info(f"❌ Version should be 2.0-enhanced, got {data.get('version')}")
+                else:
+                    logger.info("❌ Health check failed for version test")
+            
+            # Test 3: Capabilities are present
+            async with self.session.get(f"{self.api_base}/health") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    capabilities = data.get("enhanced_components", {}).get("capabilities", {})
+                    
+                    required_capabilities = ["character_detection", "voice_assignment", "video_validation", "post_production", "quality_supervision"]
+                    all_capabilities = all(capabilities.get(cap, False) for cap in required_capabilities)
+                    
+                    if all_capabilities:
+                        integration_tests_passed += 1
+                        logger.info("✅ All enhanced capabilities present")
+                    else:
+                        logger.info("❌ Not all enhanced capabilities present")
+                else:
+                    logger.info("❌ Health check failed for capabilities test")
+            
+            # Test 4: AI models updated (Minimax instead of WAN 2.1)
+            async with self.session.get(f"{self.api_base}/health") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    ai_models = data.get("ai_models", {})
+                    
+                    if ai_models.get("minimax", False) and ai_models.get("stable_audio", False):
+                        integration_tests_passed += 1
+                        logger.info("✅ AI models updated to Minimax and Stable Audio")
+                    else:
+                        logger.info("❌ AI models not properly updated")
+                else:
+                    logger.info("❌ Health check failed for AI models test")
+            
+            success = integration_tests_passed == total_integration_tests
+            self.log_test_result(
+                test_name, 
+                success, 
+                f"Component integration tests: {integration_tests_passed}/{total_integration_tests} passed",
+                {"passed": integration_tests_passed, "total": total_integration_tests}
+            )
+            return success
+            
+        except Exception as e:
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
+
+    async def test_minimax_aspect_ratios(self, project_id: str) -> bool:
         """Test WAN 2.1 aspect ratio support (16:9 and 9:16)"""
         test_name = "WAN 2.1 Aspect Ratios"
         try:
