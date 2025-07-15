@@ -85,39 +85,51 @@ db = None
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
 # Enhanced Gemini API configuration with smart multi-key, multi-model system
 GEMINI_API_KEYS = [
-    "AIzaSyBwVEDRvZ2bHppZj2zN4opMqxjzcxpJCDk",
-    "AIzaSyB-VMWQe_Bvx6j_iixXTVGRB0fx0RpQSLU",
-    "AIzaSyD36dRBkEZUyCpDHLxTVuMO4P98SsYjkbc"
+    os.getenv("GEMINI_API_KEY_1", "AIzaSyBwVEDRvZ2bHppZj2zN4opMqxjzcxpJCDk"),
+    os.getenv("GEMINI_API_KEY_2", "AIzaSyB-VMWQe_Bvx6j_iixXTVGRB0fx0RpQSLU"),
+    os.getenv("GEMINI_API_KEY_3", "AIzaSyD36dRBkEZUyCpDHLxTVuMO4P98SsYjkbc")
 ]
 
-# Smart model configuration for different tasks
+# Enhanced model configuration for different tasks using Gemini 2.5 Flash and Pro
 GEMINI_MODEL_CONFIG = {
     "script_analysis": {
         "model": "gemini-2.5-pro",
-        "description": "Complex script analysis with character detection"
+        "description": "Complex script analysis with character detection",
+        "max_tokens": 8192,
+        "temperature": 0.3
     },
     "scene_breaking": {
         "model": "gemini-2.5-flash",
-        "description": "Fast scene breakdown and segmentation"
+        "description": "Fast scene breakdown and segmentation",
+        "max_tokens": 4096,
+        "temperature": 0.4
     },
     "video_prompt": {
-        "model": "gemini-2.0-flash-exp",
-        "description": "Creative video prompt generation"
+        "model": "gemini-2.5-flash",
+        "description": "Creative video prompt generation",
+        "max_tokens": 2048,
+        "temperature": 0.7
     },
     "character_detection": {
-        "model": "gemini-1.5-pro",
-        "description": "Advanced character personality analysis"
+        "model": "gemini-2.5-pro",
+        "description": "Advanced character personality analysis",
+        "max_tokens": 4096,
+        "temperature": 0.2
     },
     "voice_assignment": {
-        "model": "gemini-2.0-flash",
-        "description": "Intelligent voice matching"
+        "model": "gemini-2.5-flash",
+        "description": "Intelligent voice matching",
+        "max_tokens": 2048,
+        "temperature": 0.5
     },
     "video_validation": {
-        "model": "gemini-1.5-flash",
-        "description": "Quick video quality validation"
+        "model": "gemini-2.5-flash",
+        "description": "Quick video quality validation",
+        "max_tokens": 1024,
+        "temperature": 0.3
     },
     "editing_plan": {
-        "model": "gemini-2.5-flash",
+        "model": "gemini-2.5-pro",
         "description": "Intelligent video editing planning"
     },
     "quality_supervision": {
