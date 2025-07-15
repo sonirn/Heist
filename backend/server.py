@@ -114,7 +114,7 @@ generation_status: Dict[str, Dict] = {}
 # Initialize enhanced components
 gemini_supervisor = get_gemini_supervisor(GEMINI_API_KEYS)
 runwayml_processor = get_runwayml_processor(RUNWAYML_API_KEYS)
-multi_voice_manager = get_coqui_voice_manager(ELEVENLABS_API_KEY)
+multi_voice_manager = get_coqui_voice_manager()
 
 # --- Pydantic Models ---
 
