@@ -36,7 +36,7 @@ class GeminiSupervisor:
     
     def __init__(self, api_keys: List[str]):
         """
-        Initialize Gemini Supervisor
+        Initialize Gemini Supervisor with enhanced capabilities
         
         Args:
             api_keys: List of Gemini API keys for load balancing
@@ -45,27 +45,23 @@ class GeminiSupervisor:
         self.current_key_index = 0
         self.session_id = f"supervisor_{uuid.uuid4()}"
         
-        # Initialize chat session
-        self.chat = None
-        self._initialize_chat()
-        
-        # Quality standards
-        self.quality_standards = {
-            "video_consistency": 0.85,
-            "prompt_adherence": 0.90,
-            "scene_flow": 0.80,
-            "audio_sync": 0.95,
-            "overall_quality": 0.85
-        }
-        
-        # Production context
+        # Production context for human-like decision making
         self.production_context = {
             "script": "",
             "target_theme": "",
             "characters": [],
             "scene_sequence": [],
-            "quality_history": []
+            "quality_standards": {
+                "visual_clarity": 0.8,
+                "audio_sync": 0.9,
+                "narrative_flow": 0.85,
+                "technical_quality": 0.8
+            }
         }
+        
+        # Initialize chat session
+        self.chat = None
+        self._initialize_chat()
         
         logger.info("Gemini Supervisor initialized with human-like decision making")
     
