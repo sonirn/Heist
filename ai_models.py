@@ -262,12 +262,13 @@ class AIModelManager:
             "wan21": {
                 "loaded": self.wan21_generator.loaded,
                 "device": self.wan21_generator.device,
+                "development_mode": self.wan21_generator.development_mode,
                 "info": self.wan21_generator.get_model_info()
             },
             "stable_audio": {
                 "loaded": self.stable_audio.loaded,
-                "device": self.stable_audio.device,
-                "config": self.stable_audio.model_config
+                "development_mode": self.stable_audio.development_mode,
+                "info": self.stable_audio.real_generator.get_model_info()
             },
             "manager": {
                 "loaded": self.loaded,
