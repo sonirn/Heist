@@ -28,13 +28,56 @@ function App() {
   useEffect(() => {
     if (generationId && isGenerating) {
       connectWebSocket();
+      // Also start polling as fallback
+      startPolling();
     }
     return () => {
       if (wsRef.current) {
         wsRef.current.close();
       }
+      stopPolling();
     };
   }, [generationId, isGenerating]);
+
+  const startPolling = () => {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+    }
+    
+    pollingInterval = setInterval(async () => {
+      if (generationId && isGenerating) {
+        try {
+          const response = await fetch(`${BACKEND_URL}/api/generate/${generationId}`);
+          if (response.ok) {
+            const data = await response.json();
+            setProgress(data.progress || 0);
+            setProgressMessage(data.message || '');
+            setGenerationStatus(data.status || '');
+            
+            if (data.status === 'completed' && data.video_url) {
+              setVideoUrl(data.video_url);
+              setIsGenerating(false);
+              setCurrentStep('result');
+              stopPolling();
+            } else if (data.status === 'failed') {
+              setError(data.message || 'Generation failed');
+              setIsGenerating(false);
+              stopPolling();
+            }
+          }
+        } catch (error) {
+          console.error('Error polling status:', error);
+        }
+      }
+    }, 2000); // Poll every 2 seconds
+  };
+
+  const stopPolling = () => {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      pollingInterval = null;
+    }
+  };
 
   const loadVoices = async () => {
     try {
