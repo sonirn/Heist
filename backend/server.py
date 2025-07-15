@@ -45,6 +45,10 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage
 # Add the project root to path
 sys.path.append('/app')
 from ai_models import ai_manager
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from gemini_supervisor import get_gemini_supervisor
 from runwayml_processor import get_runwayml_processor
 from multi_character_voice import get_multi_voice_manager
