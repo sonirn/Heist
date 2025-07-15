@@ -634,36 +634,22 @@ async def process_enhanced_video_generation(generation_id: str, project_data: Di
         # Broadcast status
         await broadcast_status(generation_id)
         
-        # Step 1: Enhanced Script Analysis with Character Detection
-        generation_status[generation_id]["message"] = "Analyzing script and breaking into scenes..."
+        # Step 1: Enhanced Script Analysis with Multi-Scene Breaking
+        generation_status[generation_id]["message"] = "Analyzing script and creating intelligent scene breakdown..."
         generation_status[generation_id]["progress"] = 5.0
         await broadcast_status(generation_id)
         
-        # Use fallback analysis due to API quota issues
-        script_analysis = {
-            "characters": [
-                {
-                    "name": "Narrator",
-                    "personality": "neutral",
-                    "voice_characteristics": {
-                        "tone": "professional",
-                        "age": "adult",
-                        "gender": "neutral",
-                        "emotion": "calm"
-                    },
-                    "role": "narrator",
-                    "dialogue": project_data["script"]
-                }
-            ],
-            "scenes": await gemini_supervisor.break_script_into_scenes(project_data["script"]),
-            "production_notes": {
-                "theme": "general",
-                "visual_style": "realistic",
-                "pacing": "moderate"
-            }
-        }
+        # Use enhanced script analysis for better scene breaking
+        script_analysis = await gemini_manager.analyze_script_with_enhanced_scene_breaking(project_data["script"])
         
-        # Step 2: Generate Scene-Specific Video Prompts
+        # Ensure we have proper scene structure
+        if not script_analysis.get("scenes"):
+            logger.warning("No scenes found in script analysis, creating fallback scenes")
+            script_analysis["scenes"] = await gemini_supervisor.break_script_into_scenes(project_data["script"])
+        
+        logger.info(f"Script analysis completed with {len(script_analysis.get('scenes', []))} scenes")
+        
+        # Step 2: Generate Scene-Specific Video Prompts with Enhanced Context
         generation_status[generation_id]["message"] = "Creating optimized prompts for each scene..."
         generation_status[generation_id]["progress"] = 15.0
         await broadcast_status(generation_id)
@@ -673,7 +659,7 @@ async def process_enhanced_video_generation(generation_id: str, project_data: Di
             await multi_voice_manager.initialize_tts_engines()
             multi_voice_manager.tts_initialized = True
         
-        # Step 3: Generate Multiple Video Clips (One Per Scene)
+        # Step 3: Generate Multiple Video Clips (One Per Scene with Enhanced Prompts)
         generation_status[generation_id]["message"] = "Generating video clips for each scene..."
         generation_status[generation_id]["progress"] = 25.0
         await broadcast_status(generation_id)
@@ -685,15 +671,29 @@ async def process_enhanced_video_generation(generation_id: str, project_data: Di
         logger.info(f"Generating {len(scenes)} video clips for {len(scenes)} scenes")
         
         for i, scene in enumerate(scenes):
-            # Generate optimized prompt for this specific scene
-            video_prompt = await gemini_manager.generate_video_prompt(scene["description"])
+            # Generate enhanced optimized prompt for this specific scene with context
+            scene_context = {
+                "scene_number": scene.get("scene_number", i + 1),
+                "duration": scene.get("duration", 5),
+                "visual_mood": scene.get("visual_mood", "neutral"),
+                "camera_suggestions": scene.get("camera_suggestions", "medium shot"),
+                "lighting_mood": scene.get("lighting_mood", "natural"),
+                "transition_from_previous": scene.get("transition_from_previous", "cut"),
+                "visual_elements": scene.get("visual_elements", "standard composition"),
+                "total_scenes": len(scenes)
+            }
+            
+            video_prompt = await gemini_manager.generate_enhanced_video_prompt(
+                scene.get("description", ""),
+                scene_context
+            )
             
             # Truncate prompt if too long (max 400 characters for Minimax)
             if len(video_prompt) > 400:
-                video_prompt = video_prompt[:400] + "..."
+                video_prompt = video_prompt[:400].rsplit(' ', 1)[0] + "..."
                 logger.warning(f"Scene {i+1} prompt truncated to {len(video_prompt)} characters")
             
-            logger.info(f"Scene {i+1}/{len(scenes)}: Generating clip with prompt: {video_prompt[:100]}...")
+            logger.info(f"Scene {i+1}/{len(scenes)}: Generating clip with enhanced prompt: {video_prompt[:100]}...")
             
             # Generate video clip for this scene
             video_path = ai_manager.generate_content(
@@ -709,9 +709,10 @@ async def process_enhanced_video_generation(generation_id: str, project_data: Di
                     "path": video_path,
                     "scene": scene,
                     "prompt": video_prompt,
-                    "scene_number": i + 1
+                    "scene_number": i + 1,
+                    "scene_context": scene_context
                 })
-                logger.info(f"Scene {i+1} clip generated successfully")
+                logger.info(f"Scene {i+1} clip generated successfully with enhanced prompt")
             else:
                 logger.error(f"Failed to generate clip for scene {i+1}")
             
