@@ -729,6 +729,8 @@ class BackendTester:
         except Exception as e:
             self.log_test_result(test_name, False, f"Exception: {str(e)}")
             return False
+    
+    async def run_all_tests(self):
         """Run all backend tests with WAN 2.1 and Stable Audio focus"""
         logger.info("🚀 Starting comprehensive backend API testing with WAN 2.1 and Stable Audio focus...")
         logger.info(f"Testing backend at: {self.base_url}")
