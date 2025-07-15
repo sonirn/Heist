@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Enhanced script-to-video website with Minimax API for clips generation, automated multi-character voice system, RunwayML professional post-production, and Gemini supervisor for human-like video production workflow. Enhanced with Hindi language support and at least 6 Hindi character voices."
+user_problem_statement: "Enhanced script-to-video website with Minimax API for clips generation, automated multi-character voice system, RunwayML professional post-production, and Gemini supervisor for human-like video production workflow. Enhanced with Hindi language support and at least 6 Hindi character voices. Updated with smart Gemini scene breaking, multi-key API rotation, and enhanced R2 storage."
 
 backend:
   - task: "Enhanced Coqui TTS with Hindi Support and Multiple Character Voices"
