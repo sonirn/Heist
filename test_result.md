@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Create a comprehensive script-to-video website with WAN 2.1 T2B 1.3B text-to-video model, Stable Audio Open for sound effects, and complete video processing pipeline"
+user_problem_statement: "Enhanced script-to-video website with Minimax API for clips generation, automated multi-character voice system, and RunwayML professional post-production for movie-level quality output"
 
 backend:
   - task: "Enhanced WAN 2.1 T2B 1.3B Model Implementation"
