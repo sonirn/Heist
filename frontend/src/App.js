@@ -333,21 +333,29 @@ Finally, we'll demonstrate the real-time collaboration tools that keep your team
         </div>
 
         <div className="progress-steps">
-          <div className={`progress-step ${progress > 10 ? 'completed' : progress > 0 ? 'active' : ''}`}>
-            <div className="step-icon">📝</div>
-            <span>Analyzing Script</span>
+          <div className={`progress-step ${progress > 5 ? 'completed' : progress > 0 ? 'active' : ''}`}>
+            <div className="step-icon">🎭</div>
+            <span>Character Detection</span>
           </div>
-          <div className={`progress-step ${progress > 40 ? 'completed' : progress > 30 ? 'active' : ''}`}>
+          <div className={`progress-step ${progress > 15 ? 'completed' : progress > 5 ? 'active' : ''}`}>
+            <div className="step-icon">🎤</div>
+            <span>Voice Assignment</span>
+          </div>
+          <div className={`progress-step ${progress > 50 ? 'completed' : progress > 25 ? 'active' : ''}`}>
             <div className="step-icon">🎥</div>
-            <span>Generating Video Clips</span>
+            <span>Video Generation</span>
           </div>
-          <div className={`progress-step ${progress > 80 ? 'completed' : progress > 70 ? 'active' : ''}`}>
+          <div className={`progress-step ${progress > 70 ? 'completed' : progress > 60 ? 'active' : ''}`}>
             <div className="step-icon">🎙️</div>
-            <span>Creating Voice Over</span>
+            <span>Audio Creation</span>
           </div>
-          <div className={`progress-step ${progress > 95 ? 'completed' : progress > 85 ? 'active' : ''}`}>
+          <div className={`progress-step ${progress > 90 ? 'completed' : progress > 80 ? 'active' : ''}`}>
             <div className="step-icon">🎬</div>
-            <span>Final Assembly</span>
+            <span>Post-Production</span>
+          </div>
+          <div className={`progress-step ${progress > 98 ? 'completed' : progress > 95 ? 'active' : ''}`}>
+            <div className="step-icon">✨</div>
+            <span>Final Quality Check</span>
           </div>
         </div>
       </div>
