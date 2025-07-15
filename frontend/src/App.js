@@ -223,6 +223,7 @@ function App() {
     if (wsRef.current) {
       wsRef.current.close();
     }
+    stopPolling();
   };
 
   const renderScriptStep = () => (
