@@ -98,12 +98,7 @@ class WAN21VideoGenerator:
         Returns:
             Dict containing model information
         """
-        return {
-            "model_specs": self.model_specs,
-            "supported_aspect_ratios": self.supported_aspect_ratios,
-            "device": self.device,
-            "loaded": self.loaded
-        }
+        return self.real_generator.get_model_info()
     
     def load_model(self):
         """
@@ -113,6 +108,14 @@ class WAN21VideoGenerator:
             bool: True if model loaded successfully
         """
         return self.real_generator.load_model()
+    
+    def generate_video(self, prompt: str, aspect_ratio: str = "16:9", **kwargs) -> Optional[bytes]:
+        """Generate video using real generator"""
+        return self.real_generator.generate_video(prompt, aspect_ratio, **kwargs)
+    
+    def get_deployment_instructions(self) -> str:
+        """Get deployment instructions"""
+        return self.real_generator.get_deployment_guide()
     
     def _load_gpu_model(self):
         """
