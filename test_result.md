@@ -257,20 +257,10 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Minimax API Integration - Replace WAN 2.1"
-    - "Enhanced Stable Audio Open Integration"
-    - "Gemini Supervisor Integration - Human-like Video Production"
-    - "RunwayML Professional Post-Production Integration"
-    - "Multi-Character Voice Manager - Intelligent Voice Assignment"
-    - "Enhanced Video Generation Pipeline"
-    - "Enhanced Health Check Endpoint"
-    - "Enhanced Frontend - Removed Voice Selection"
-    - "Enhanced Progress Tracking UI"
-    - "Enhanced Features Display"
+  current_focus: []
   stuck_tasks: []
-  test_all: true
-  test_priority: "high_first"
+  test_all: false
+  test_priority: "completed"
 
 agent_communication:
     - agent: "main"
