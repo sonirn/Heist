@@ -302,16 +302,32 @@ class MinimaxVideoGenerator:
             return None
     
     def _process_video_response(self, response):
-        """Process Minimax API response"""
+        """Process Minimax API response and download video"""
         try:
-            # Extract video data from response
-            if response and "data" in response:
-                video_data = response["data"]
+            if not response or "file_id" not in response:
+                logger.error("Invalid response format")
+                return None
+            
+            file_id = response["file_id"]
+            
+            # Step 3: Download the generated video
+            download_url = f"{self.api_base_url}/files/retrieve"
+            
+            download_response = requests.get(
+                download_url,
+                headers=self.headers,
+                params={"file_id": file_id},
+                timeout=60
+            )
+            
+            if download_response.status_code == 200:
+                # The response should contain a download URL or video data
+                download_data = download_response.json()
                 
-                # If video URL is provided, download it
-                if "url" in video_data:
-                    video_url = video_data["url"]
-                    video_response = requests.get(video_url, timeout=60)
+                if "url" in download_data:
+                    # Download video from URL
+                    video_url = download_data["url"]
+                    video_response = requests.get(video_url, timeout=120)
                     
                     if video_response.status_code == 200:
                         logger.info(f"Downloaded video: {len(video_response.content)} bytes")
@@ -320,18 +336,21 @@ class MinimaxVideoGenerator:
                         logger.error(f"Failed to download video from: {video_url}")
                         return None
                 
-                # If video data is provided directly
-                elif "video" in video_data:
-                    video_base64 = video_data["video"]
-                    video_bytes = base64.b64decode(video_base64)
-                    logger.info(f"Decoded video: {len(video_bytes)} bytes")
-                    return video_bytes
-                
+                elif "data" in download_data:
+                    # Video data provided directly
+                    if isinstance(download_data["data"], str):
+                        # Base64 encoded video
+                        video_bytes = base64.b64decode(download_data["data"])
+                        logger.info(f"Decoded video: {len(video_bytes)} bytes")
+                        return video_bytes
+                    else:
+                        logger.error("Unexpected video data format")
+                        return None
                 else:
-                    logger.error("No video data found in response")
+                    logger.error("No download URL or video data in response")
                     return None
             else:
-                logger.error("Invalid response format")
+                logger.error(f"Failed to retrieve video: {download_response.status_code}")
                 return None
             
         except Exception as e:
