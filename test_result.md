@@ -105,6 +105,18 @@
 user_problem_statement: "Enhanced script-to-video website with Minimax API for clips generation, automated multi-character voice system, RunwayML professional post-production, and Gemini supervisor for human-like video production workflow"
 
 backend:
+  - task: "ElevenLabs Voice Generation - Free Tier Restriction Issue"
+    implemented: true
+    working: false
+    file: "backend/server.py, multi_character_voice.py"
+    stuck_count: 1
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "🔑 CRITICAL ISSUE IDENTIFIED: ElevenLabs API key (sk_f4dafe7e83f0d71c67d13a006e39c19acc4c28c87860b8dc) is VALID for voice listing but FAILS for speech generation due to Free Tier restrictions. Error: 'Unusual activity detected. Free Tier usage disabled. If you are using a proxy/VPN you might need to purchase a Paid Plan to not trigger our abuse detectors.' This is causing video generation to fail at the voice generation step (60-70% progress). System progresses correctly through all steps until voice generation, then fails. All enhanced components (Gemini Supervisor, RunwayML Processor, Multi-Voice Manager) are working correctly. ROOT CAUSE: ElevenLabs requires paid plan upgrade to resolve voice generation failures. This is NOT a system bug but an API service limitation."
+
   - task: "Gemini Supervisor Integration - Human-like Video Production"
     implemented: true
     working: true
