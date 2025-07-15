@@ -211,8 +211,113 @@ async def close_mongo_connection():
 
 # --- Gemini Integration ---
 
+class SmartGeminiManager:
+    """Enhanced Gemini Manager with smart multi-key, multi-model system"""
+    
+    def __init__(self):
+        self.api_keys = GEMINI_API_KEYS
+        self.model_config = GEMINI_MODEL_CONFIG
+        self.key_usage = {key: 0 for key in self.api_keys}
+        self.model_usage = {model: 0 for model in self.model_config.keys()}
+        self.current_key_index = 0
+        self.chats = {}
+        logger.info(f"SmartGeminiManager initialized with {len(self.api_keys)} API keys and {len(self.model_config)} model configurations")
+    
+    def get_optimal_key_model(self, task_type: str) -> tuple:
+        """Get optimal API key and model for specific task type"""
+        # Get model configuration for this task
+        model_info = self.model_config.get(task_type, {
+            "model": "gemini-2.0-flash",
+            "description": "Default model for unknown tasks"
+        })
+        
+        # Find the least used key
+        least_used_key = min(self.api_keys, key=lambda k: self.key_usage[k])
+        
+        # Update usage counters
+        self.key_usage[least_used_key] += 1
+        self.model_usage[task_type] = self.model_usage.get(task_type, 0) + 1
+        
+        logger.info(f"Task: {task_type} | Model: {model_info['model']} | Key: {least_used_key[-10:]}... | Usage: {self.key_usage[least_used_key]}")
+        
+        return least_used_key, model_info['model']
+    
+    def get_fallback_key_model(self, failed_key: str, task_type: str) -> tuple:
+        """Get fallback key and model when primary fails"""
+        # Get next available key
+        available_keys = [k for k in self.api_keys if k != failed_key]
+        if not available_keys:
+            return None, None
+        
+        fallback_key = min(available_keys, key=lambda k: self.key_usage[k])
+        
+        # Try different model for fallback
+        fallback_models = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash"]
+        primary_model = self.model_config.get(task_type, {}).get("model", "gemini-2.0-flash")
+        
+        fallback_model = next((m for m in fallback_models if m != primary_model), "gemini-2.0-flash")
+        
+        logger.warning(f"Fallback - Task: {task_type} | Model: {fallback_model} | Key: {fallback_key[-10:]}...")
+        
+        return fallback_key, fallback_model
+    
+    async def execute_task(self, task_type: str, prompt: str, system_message: str = None) -> str:
+        """Execute Gemini task with smart key/model selection and fallback"""
+        max_retries = 3
+        attempt = 0
+        
+        while attempt < max_retries:
+            try:
+                # Get optimal key and model
+                if attempt == 0:
+                    api_key, model = self.get_optimal_key_model(task_type)
+                else:
+                    # Use fallback on retry
+                    api_key, model = self.get_fallback_key_model(self.last_failed_key, task_type)
+                    if not api_key:
+                        break
+                
+                # Create session
+                session_id = f"{task_type}_{uuid.uuid4()}"
+                
+                default_system = f"You are an AI assistant specialized in {task_type}. {self.model_config.get(task_type, {}).get('description', '')}"
+                
+                chat = LlmChat(
+                    api_key=api_key,
+                    session_id=session_id,
+                    system_message=system_message or default_system
+                ).with_model("gemini", model)
+                
+                # Execute request
+                message = UserMessage(text=prompt)
+                response = await chat.send_message(message)
+                
+                logger.info(f"✅ Task {task_type} completed successfully with {model}")
+                return response
+                
+            except Exception as e:
+                attempt += 1
+                self.last_failed_key = api_key
+                logger.error(f"❌ Task {task_type} failed (attempt {attempt}/{max_retries}): {str(e)}")
+                
+                if attempt < max_retries:
+                    await asyncio.sleep(1)  # Brief delay before retry
+                    
+        logger.error(f"❌ Task {task_type} failed after {max_retries} attempts")
+        return ""
+    
+    def get_usage_stats(self) -> dict:
+        """Get current usage statistics"""
+        return {
+            "key_usage": self.key_usage,
+            "model_usage": self.model_usage,
+            "total_requests": sum(self.key_usage.values())
+        }
+
+# Legacy GeminiManager for backward compatibility
 class GeminiManager:
     def __init__(self):
+        self.smart_manager = SmartGeminiManager()
         self.api_keys = GEMINI_API_KEYS
         self.current_key_index = 0
         self.chats = {}
@@ -224,66 +329,85 @@ class GeminiManager:
         return key
     
     async def analyze_script(self, script: str) -> Dict:
-        """Analyze script and break it into scenes"""
+        """Analyze script and break it into scenes using smart manager"""
+        prompt = f"""
+        As a professional video production director, analyze this script and break it into scenes:
+        
+        SCRIPT:
+        {script}
+        
+        Provide a detailed analysis in JSON format with:
+        
+        1. SCENES: Break down into scenes with:
+           - Scene number and description
+           - Duration estimate (5-10 seconds per scene)
+           - Visual mood and camera suggestions
+           - Audio/dialogue text
+        
+        2. CHARACTERS: Identify main characters if any
+        
+        3. PRODUCTION_NOTES: Overall theme and style
+        
+        Return ONLY valid JSON format.
+        """
+        
+        response = await self.smart_manager.execute_task("script_analysis", prompt)
+        
         try:
-            api_key = self.get_next_key()
-            session_id = f"script_analysis_{uuid.uuid4()}"
-            
-            chat = LlmChat(
-                api_key=api_key,
-                session_id=session_id,
-                system_message="You are a script analyzer. Analyze the provided script and break it into scenes for video generation."
-            ).with_model("gemini", "gemini-2.0-flash")
-            
-            prompt = f"""
-            Analyze this script and break it into scenes suitable for video generation:
-            
-            Script: {script}
-            
-            Please provide a JSON response with:
-            1. scenes: Array of scene objects with:
-               - scene_number: int
-               - description: string (visual description for video generation)
-               - duration: int (seconds)
-               - audio_text: string (text to be spoken)
-            2. total_duration: int (total video duration in seconds)
-            3. theme: string (overall theme/mood)
-            
-            Return only valid JSON, no explanations.
-            """
-            
-            message = UserMessage(text=prompt)
-            response = await chat.send_message(message)
-            
-            # Parse JSON response
-            try:
-                result = json.loads(response)
-                return result
-            except json.JSONDecodeError:
-                # Fallback if JSON parsing fails
-                return {
-                    "scenes": [{
-                        "scene_number": 1,
-                        "description": script,
-                        "duration": 10,
-                        "audio_text": script
-                    }],
-                    "total_duration": 10,
-                    "theme": "general"
-                }
-                
-        except Exception as e:
-            logger.error(f"Script analysis failed: {str(e)}")
-            return {
-                "scenes": [{
+            return json.loads(response)
+        except json.JSONDecodeError:
+            logger.error("Failed to parse JSON from script analysis")
+            return self._create_fallback_analysis(script)
+    
+    async def generate_video_prompt(self, scene_description: str) -> str:
+        """Generate optimized prompt for video generation using smart manager"""
+        prompt = f"""
+        Convert this scene description into an optimized prompt for AI video generation:
+        
+        Scene: {scene_description}
+        
+        Create a detailed, cinematic prompt that includes:
+        - Visual style and mood
+        - Camera movements and angles
+        - Lighting conditions
+        - Color palette
+        - Specific visual details
+        
+        Keep it concise but descriptive (under 400 characters). Return only the optimized prompt.
+        """
+        
+        response = await self.smart_manager.execute_task("video_prompt", prompt)
+        
+        # Ensure prompt is under 400 characters
+        if len(response) > 400:
+            response = response[:400] + "..."
+        
+        return response or scene_description
+    
+    def _create_fallback_analysis(self, script: str) -> Dict:
+        """Create fallback analysis when Gemini fails"""
+        return {
+            "scenes": [
+                {
                     "scene_number": 1,
                     "description": script,
                     "duration": 10,
+                    "visual_mood": "neutral",
+                    "camera_suggestions": "medium shot",
                     "audio_text": script
-                }],
-                "total_duration": 10,
-                "theme": "general"
+                }
+            ],
+            "characters": [
+                {
+                    "name": "Narrator",
+                    "role": "narrator"
+                }
+            ],
+            "production_notes": {
+                "theme": "general",
+                "style": "realistic"
             }
+        }
     
     async def generate_video_prompt(self, scene_description: str) -> str:
         """Generate optimized prompt for video generation"""
