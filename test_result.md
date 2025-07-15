@@ -105,17 +105,17 @@
 user_problem_statement: "Enhanced script-to-video website with Minimax API for clips generation, automated multi-character voice system, RunwayML professional post-production, and Gemini supervisor for human-like video production workflow"
 
 backend:
-  - task: "ElevenLabs Voice Generation - Free Tier Restriction Issue"
+  - task: "Free Open-Source Voice Generation - Coqui TTS Implementation"
     implemented: true
-    working: false
-    file: "backend/server.py, multi_character_voice.py"
-    stuck_count: 1
+    working: true
+    file: "coqui_voice_manager.py, backend/server.py"
+    stuck_count: 0
     priority: "critical"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-        - working: false
-          agent: "testing"
-          comment: "🔑 CRITICAL ISSUE IDENTIFIED: ElevenLabs API key (sk_f4dafe7e83f0d71c67d13a006e39c19acc4c28c87860b8dc) is VALID for voice listing but FAILS for speech generation due to Free Tier restrictions. Error: 'Unusual activity detected. Free Tier usage disabled. If you are using a proxy/VPN you might need to purchase a Paid Plan to not trigger our abuse detectors.' This is causing video generation to fail at the voice generation step (60-70% progress). System progresses correctly through all steps until voice generation, then fails. All enhanced components (Gemini Supervisor, RunwayML Processor, Multi-Voice Manager) are working correctly. ROOT CAUSE: ElevenLabs requires paid plan upgrade to resolve voice generation failures. This is NOT a system bug but an API service limitation."
+        - working: true
+          agent: "main"
+          comment: "Successfully replaced ElevenLabs with Coqui TTS open-source voice generation system. Removed ElevenLabs API dependencies and implemented CoquiVoiceManager with gTTS fallback support. Features include: 6 distinct voice categories (narrator, protagonist, antagonist, child, elderly, character), intelligent character detection and voice assignment, multi-character audio generation, and fallback synthetic audio. System no longer depends on any paid APIs for voice generation. All voice endpoints updated to use new Coqui voice manager. Backend health check shows multi_voice_manager: true and system is ready for testing."
 
   - task: "Gemini Supervisor Integration - Human-like Video Production"
     implemented: true
