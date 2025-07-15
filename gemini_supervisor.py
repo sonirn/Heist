@@ -292,6 +292,27 @@ Always provide detailed, actionable feedback and maintain high quality standards
             # Split script into sentences for scene creation
             sentences = [s.strip() for s in script.split('.') if s.strip()]
             
+            # If only one sentence, try to split by other punctuation
+            if len(sentences) == 1:
+                # Try splitting by other punctuation
+                parts = []
+                for delimiter in [';', ',', '\n']:
+                    if delimiter in sentences[0]:
+                        parts = [p.strip() for p in sentences[0].split(delimiter) if p.strip()]
+                        break
+                
+                if parts:
+                    sentences = parts
+                else:
+                    # Split long sentence into two parts
+                    words = sentences[0].split()
+                    if len(words) > 10:
+                        mid_point = len(words) // 2
+                        sentences = [
+                            ' '.join(words[:mid_point]),
+                            ' '.join(words[mid_point:])
+                        ]
+            
             scenes = []
             for i, sentence in enumerate(sentences):
                 if sentence:
@@ -299,39 +320,34 @@ Always provide detailed, actionable feedback and maintain high quality standards
                         "scene_number": i + 1,
                         "description": sentence.strip(),
                         "duration": 5,  # Default 5 seconds per scene
-                        "visual_mood": "neutral",
-                        "camera_suggestions": "medium shot",
+                        "visual_mood": "cinematic" if i % 2 == 0 else "dramatic",
+                        "camera_suggestions": "medium shot" if i == 0 else "close-up" if i % 2 == 1 else "wide shot",
                         "lighting_mood": "natural",
-                        "audio_text": sentence.strip()
+                        "audio_text": sentence.strip(),
+                        "visual_elements": "realistic environment",
+                        "transition_from_previous": "fade in" if i == 0 else "smooth cut"
                     })
             
-            # If no scenes created, create a single scene with entire script
-            if not scenes:
-                scenes = [{
-                    "scene_number": 1,
-                    "description": script,
-                    "duration": 10,
-                    "visual_mood": "neutral",
-                    "camera_suggestions": "medium shot", 
-                    "lighting_mood": "natural",
-                    "audio_text": script
-                }]
-            
-            logger.info(f"Fallback: Script broken into {len(scenes)} scenes")
-            return scenes
+            logger.info(f"Created {len(scenes)} fallback scenes")
+            return scenes if scenes else [self._create_single_fallback_scene(script)]
             
         except Exception as e:
-            logger.error(f"Fallback scene creation failed: {str(e)}")
-            # Return single scene as final fallback
-            return [{
-                "scene_number": 1,
-                "description": script,
-                "duration": 10,
-                "visual_mood": "neutral",
-                "camera_suggestions": "medium shot",
-                "lighting_mood": "natural",
-                "audio_text": script
-            }]
+            logger.error(f"Error creating fallback scenes: {str(e)}")
+            return [self._create_single_fallback_scene(script)]
+    
+    def _create_single_fallback_scene(self, script: str) -> Dict[str, Any]:
+        """Create a single fallback scene"""
+        return {
+            "scene_number": 1,
+            "description": script,
+            "duration": 10,
+            "visual_mood": "neutral",
+            "camera_suggestions": "medium shot",
+            "lighting_mood": "natural",
+            "audio_text": script,
+            "visual_elements": "standard composition",
+            "transition_from_previous": "fade in"
+        }
     
     async def assign_character_voices(self, characters: List[Dict], available_voices: List[Dict]) -> Dict[str, Dict]:
         """
