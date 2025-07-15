@@ -254,18 +254,30 @@ Finally, we'll demonstrate the real-time collaboration tools that keep your team
         </div>
 
         <div className="setting-group">
-          <label>Voice Selection</label>
-          <select
-            value={selectedVoice}
-            onChange={(e) => setSelectedVoice(e.target.value)}
-            className="voice-selector"
-          >
-            {voices.map(voice => (
-              <option key={voice.voice_id} value={voice.voice_id}>
-                {voice.name}
-              </option>
-            ))}
-          </select>
+          <label>Enhanced Features</label>
+          <div className="enhanced-features">
+            <div className="feature-item">
+              <div className="feature-icon">🎭</div>
+              <div className="feature-text">
+                <strong>Automatic Character Detection</strong>
+                <p>AI analyzes your script and identifies characters automatically</p>
+              </div>
+            </div>
+            <div className="feature-item">
+              <div className="feature-icon">🎤</div>
+              <div className="feature-text">
+                <strong>Intelligent Voice Assignment</strong>
+                <p>Each character gets a unique voice based on their personality</p>
+              </div>
+            </div>
+            <div className="feature-item">
+              <div className="feature-icon">🎬</div>
+              <div className="feature-text">
+                <strong>Professional Post-Production</strong>
+                <p>Movie-level editing with color grading and effects</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="setting-group">
