@@ -1486,7 +1486,7 @@ NARRATOR: And so their journey began with hope and determination.
 async def main():
     """Main test runner"""
     # Get backend URL from environment
-    backend_url = "https://150b9fad-e060-4b30-8385-8095b0a1b49f.preview.emergentagent.com"
+    backend_url = "https://505a9e49-02f9-40a7-a54e-8deaf9648f75.preview.emergentagent.com"
     
     async with BackendTester(backend_url) as tester:
         results = await tester.run_all_tests()
