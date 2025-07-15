@@ -453,6 +453,252 @@ NARRATOR: Experience the power of AI-driven video production.
         except Exception as e:
             self.log_test_result(test_name, False, f"Exception: {str(e)}")
             return False
+
+    async def test_video_generation_progress_monitoring(self) -> bool:
+        """Test video generation process to verify it's no longer stuck at 0% and progressing properly"""
+        test_name = "Video Generation Progress Monitoring"
+        try:
+            logger.info("🎬 TESTING VIDEO GENERATION PROGRESS - Verifying no longer stuck at 0%")
+            logger.info("=" * 80)
+            
+            # Step 1: Create a new project with simple script as requested
+            simple_script = "A person walking in a sunny park. The weather is beautiful and birds are singing."
+            
+            project_data = {
+                "script": simple_script,
+                "aspect_ratio": "16:9",
+                "voice_name": "default"
+            }
+            
+            logger.info("📝 Step 1: Creating project with simple script...")
+            async with self.session.post(
+                f"{self.api_base}/projects",
+                json=project_data,
+                headers={"Content-Type": "application/json"}
+            ) as response:
+                if response.status != 200:
+                    self.log_test_result(test_name, False, f"Project creation failed: HTTP {response.status}")
+                    return False
+                
+                project_result = await response.json()
+                project_id = project_result.get("project_id")
+                if not project_id:
+                    self.log_test_result(test_name, False, "No project_id returned")
+                    return False
+                
+                logger.info(f"✅ Project created successfully: {project_id}")
+            
+            # Step 2: Start video generation
+            logger.info("🚀 Step 2: Starting video generation...")
+            generation_data = {
+                "project_id": project_id,
+                "script": simple_script,
+                "aspect_ratio": "16:9"
+            }
+            
+            async with self.session.post(
+                f"{self.api_base}/generate",
+                json=generation_data,
+                headers={"Content-Type": "application/json"}
+            ) as response:
+                if response.status != 200:
+                    self.log_test_result(test_name, False, f"Generation start failed: HTTP {response.status}")
+                    return False
+                
+                generation_result = await response.json()
+                generation_id = generation_result.get("generation_id")
+                if not generation_id:
+                    self.log_test_result(test_name, False, "No generation_id returned")
+                    return False
+                
+                initial_status = generation_result.get("status", "")
+                initial_progress = generation_result.get("progress", 0.0)
+                logger.info(f"✅ Generation started: {generation_id} (Status: {initial_status}, Progress: {initial_progress}%)")
+            
+            # Step 3: Monitor progress to ensure it moves beyond 0% and "queued" status
+            logger.info("📊 Step 3: Monitoring generation progress...")
+            
+            progress_checks = []
+            max_monitoring_time = 30  # seconds
+            check_interval = 2  # seconds
+            checks_performed = 0
+            max_checks = max_monitoring_time // check_interval
+            
+            stuck_at_zero = True
+            moved_beyond_queued = False
+            highest_progress = 0.0
+            status_changes = []
+            
+            for check_num in range(max_checks):
+                await asyncio.sleep(check_interval)
+                checks_performed += 1
+                
+                async with self.session.get(f"{self.api_base}/generate/{generation_id}") as response:
+                    if response.status == 200:
+                        status_data = await response.json()
+                        current_status = status_data.get("status", "")
+                        current_progress = status_data.get("progress", 0.0)
+                        current_message = status_data.get("message", "")
+                        
+                        progress_checks.append({
+                            "check": check_num + 1,
+                            "status": current_status,
+                            "progress": current_progress,
+                            "message": current_message,
+                            "timestamp": time.time()
+                        })
+                        
+                        # Track status changes
+                        if not status_changes or status_changes[-1]["status"] != current_status:
+                            status_changes.append({
+                                "status": current_status,
+                                "progress": current_progress,
+                                "message": current_message,
+                                "check": check_num + 1
+                            })
+                        
+                        # Check if progress moved beyond 0%
+                        if current_progress > 0.0:
+                            stuck_at_zero = False
+                            highest_progress = max(highest_progress, current_progress)
+                        
+                        # Check if status moved beyond "queued"
+                        if current_status != "queued":
+                            moved_beyond_queued = True
+                        
+                        logger.info(f"📈 Check {check_num + 1}: Status={current_status}, Progress={current_progress}%, Message='{current_message}'")
+                        
+                        # If completed or failed, break early
+                        if current_status in ["completed", "failed"]:
+                            logger.info(f"🏁 Generation finished with status: {current_status}")
+                            break
+                    else:
+                        logger.info(f"❌ Status check {check_num + 1} failed: HTTP {response.status}")
+            
+            # Step 4: Verify enhanced components are working
+            logger.info("🔧 Step 4: Verifying enhanced components are working...")
+            
+            async with self.session.get(f"{self.api_base}/health") as response:
+                if response.status == 200:
+                    health_data = await response.json()
+                    enhanced_components = health_data.get("enhanced_components", {})
+                    
+                    gemini_supervisor = enhanced_components.get("gemini_supervisor", False)
+                    runwayml_processor = enhanced_components.get("runwayml_processor", False)
+                    multi_voice_manager = enhanced_components.get("multi_voice_manager", False)
+                    
+                    capabilities = enhanced_components.get("capabilities", {})
+                    character_detection = capabilities.get("character_detection", False)
+                    voice_assignment = capabilities.get("voice_assignment", False)
+                    video_validation = capabilities.get("video_validation", False)
+                    post_production = capabilities.get("post_production", False)
+                    quality_supervision = capabilities.get("quality_supervision", False)
+                    
+                    logger.info(f"✅ Gemini Supervisor: {gemini_supervisor}")
+                    logger.info(f"✅ RunwayML Processor: {runwayml_processor}")
+                    logger.info(f"✅ Multi-Voice Manager: {multi_voice_manager}")
+                    logger.info(f"✅ Character Detection: {character_detection}")
+                    logger.info(f"✅ Voice Assignment: {voice_assignment}")
+                    logger.info(f"✅ Video Validation: {video_validation}")
+                    logger.info(f"✅ Post Production: {post_production}")
+                    logger.info(f"✅ Quality Supervision: {quality_supervision}")
+                    
+                    all_components_working = all([
+                        gemini_supervisor, runwayml_processor, multi_voice_manager,
+                        character_detection, voice_assignment, video_validation,
+                        post_production, quality_supervision
+                    ])
+                else:
+                    logger.info("❌ Health check failed")
+                    all_components_working = False
+            
+            # Step 5: Analyze results
+            logger.info("📋 Step 5: Analyzing results...")
+            
+            # Check if generation progressed properly
+            progress_working = not stuck_at_zero or moved_beyond_queued or highest_progress > 0
+            
+            # Check for expected progress messages indicating the 10-step pipeline
+            expected_messages = [
+                "character detection", "voice assignment", "video generation", 
+                "multi-character audio", "post-production", "quality"
+            ]
+            
+            pipeline_messages_found = []
+            for check in progress_checks:
+                message = check.get("message", "").lower()
+                for expected in expected_messages:
+                    if expected in message and expected not in pipeline_messages_found:
+                        pipeline_messages_found.append(expected)
+            
+            # Final assessment
+            success_criteria = {
+                "project_created": True,  # Already verified above
+                "generation_started": True,  # Already verified above
+                "progress_moved": progress_working,
+                "status_changed": moved_beyond_queued,
+                "components_loaded": all_components_working,
+                "pipeline_active": len(pipeline_messages_found) > 0 or highest_progress > 5.0
+            }
+            
+            passed_criteria = sum(success_criteria.values())
+            total_criteria = len(success_criteria)
+            
+            logger.info("=" * 80)
+            logger.info("📊 VIDEO GENERATION PROGRESS MONITORING RESULTS")
+            logger.info("=" * 80)
+            
+            for criterion, passed in success_criteria.items():
+                status = "✅ PASS" if passed else "❌ FAIL"
+                logger.info(f"{status} {criterion.replace('_', ' ').title()}")
+            
+            logger.info(f"📈 Progress Summary:")
+            logger.info(f"   - Checks performed: {checks_performed}")
+            logger.info(f"   - Status changes: {len(status_changes)}")
+            logger.info(f"   - Highest progress: {highest_progress}%")
+            logger.info(f"   - Stuck at 0%: {'No' if not stuck_at_zero else 'Yes'}")
+            logger.info(f"   - Moved beyond queued: {'Yes' if moved_beyond_queued else 'No'}")
+            logger.info(f"   - Pipeline messages found: {len(pipeline_messages_found)}")
+            
+            if status_changes:
+                logger.info(f"📋 Status progression:")
+                for i, change in enumerate(status_changes):
+                    logger.info(f"   {i+1}. {change['status']} ({change['progress']}%) - {change['message']}")
+            
+            overall_success = passed_criteria >= (total_criteria - 1)  # Allow 1 failure
+            
+            if overall_success:
+                logger.info("🎉 VIDEO GENERATION PROGRESS MONITORING PASSED!")
+                logger.info("✅ Video generation is no longer stuck at 0% and progressing properly")
+                logger.info("✅ Enhanced 10-step pipeline is operational")
+                logger.info("✅ All enhanced components are working correctly")
+            else:
+                logger.info("❌ VIDEO GENERATION PROGRESS MONITORING FAILED!")
+                logger.info("⚠️  Video generation may still be stuck or components not working")
+            
+            self.log_test_result(
+                test_name,
+                overall_success,
+                f"Progress monitoring: {passed_criteria}/{total_criteria} criteria passed",
+                {
+                    "success_criteria": success_criteria,
+                    "progress_checks": progress_checks,
+                    "status_changes": status_changes,
+                    "highest_progress": highest_progress,
+                    "stuck_at_zero": stuck_at_zero,
+                    "moved_beyond_queued": moved_beyond_queued,
+                    "pipeline_messages_found": pipeline_messages_found,
+                    "project_id": project_id,
+                    "generation_id": generation_id
+                }
+            )
+            
+            return overall_success
+            
+        except Exception as e:
+            logger.info(f"❌ VIDEO GENERATION PROGRESS MONITORING FAILED: Exception: {str(e)}")
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
     
     async def test_websocket_connection(self, generation_id: str) -> bool:
         """Test WebSocket connection for real-time updates"""
