@@ -319,21 +319,52 @@ NARRATOR: Experience the power of AI-driven video production.
             self.log_test_result(test_name, False, f"Exception: {str(e)}")
             return False
     
-    async def test_generation_status(self, generation_id: str) -> bool:
-        """Test getting generation status"""
-        test_name = "Generation Status"
+    async def test_enhanced_generation_status(self, generation_id: str) -> bool:
+        """Test enhanced generation status with progress tracking"""
+        test_name = "Enhanced Generation Status"
         try:
+            # Wait a bit for processing to start
+            await asyncio.sleep(2)
+            
             async with self.session.get(f"{self.api_base}/generate/{generation_id}") as response:
                 if response.status == 200:
                     data = await response.json()
                     
                     # Check if status data is returned
-                    if "status" in data:
-                        self.log_test_result(test_name, True, f"Status retrieved: {data.get('status')}", data)
-                        return True
-                    else:
-                        self.log_test_result(test_name, False, "No status field in response", data)
+                    required_fields = ["status", "progress"]
+                    missing_fields = [field for field in required_fields if field not in data]
+                    
+                    if missing_fields:
+                        self.log_test_result(test_name, False, f"Missing fields: {missing_fields}", data)
                         return False
+                    
+                    status = data.get("status", "")
+                    progress = data.get("progress", 0.0)
+                    message = data.get("message", "")
+                    
+                    # Check for enhanced generation indicators
+                    valid_statuses = ["queued", "processing", "completed", "failed"]
+                    if status not in valid_statuses:
+                        self.log_test_result(test_name, False, f"Invalid status: {status}", data)
+                        return False
+                    
+                    # Check progress is valid
+                    if not isinstance(progress, (int, float)) or progress < 0 or progress > 100:
+                        self.log_test_result(test_name, False, f"Invalid progress: {progress}", data)
+                        return False
+                    
+                    # Check for enhancement data if completed
+                    if status == "completed" and "enhancement_data" in data:
+                        enhancement_data = data["enhancement_data"]
+                        expected_keys = ["characters_detected", "scenes_processed", "voices_assigned"]
+                        
+                        for key in expected_keys:
+                            if key not in enhancement_data:
+                                self.log_test_result(test_name, False, f"Missing enhancement data: {key}", data)
+                                return False
+                    
+                    self.log_test_result(test_name, True, f"Enhanced status retrieved: {status} ({progress}%)", data)
+                    return True
                 else:
                     error_text = await response.text()
                     self.log_test_result(test_name, False, f"HTTP {response.status}: {error_text}")
