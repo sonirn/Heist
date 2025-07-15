@@ -22,6 +22,10 @@ from PIL import Image
 # Emergency integrations
 from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType, ChatError
 
+# Import smart manager for enhanced capabilities
+sys.path.append('/app')
+from backend.server import SmartGeminiManager, GEMINI_MODEL_CONFIG
+
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
