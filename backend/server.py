@@ -51,7 +51,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from gemini_supervisor import get_gemini_supervisor
 from runwayml_processor import get_runwayml_processor
-from multi_character_voice import get_multi_voice_manager
+from coqui_voice_manager import get_coqui_voice_manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -114,7 +114,7 @@ generation_status: Dict[str, Dict] = {}
 # Initialize enhanced components
 gemini_supervisor = get_gemini_supervisor(GEMINI_API_KEYS)
 runwayml_processor = get_runwayml_processor(RUNWAYML_API_KEYS)
-multi_voice_manager = get_multi_voice_manager(ELEVENLABS_API_KEY)
+multi_voice_manager = get_coqui_voice_manager(ELEVENLABS_API_KEY)
 
 # --- Pydantic Models ---
 
