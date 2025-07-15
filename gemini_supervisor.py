@@ -223,7 +223,7 @@ Always provide detailed, actionable feedback and maintain high quality standards
     
     async def break_script_into_scenes(self, script: str) -> List[Dict[str, Any]]:
         """
-        Break script into individual scenes for video generation
+        Break script into individual scenes for video generation using smart manager
         
         Args:
             script: Input script text
@@ -231,6 +231,56 @@ Always provide detailed, actionable feedback and maintain high quality standards
         Returns:
             List of scene dictionaries
         """
+        try:
+            # Use smart manager for scene breaking
+            if not hasattr(self, 'smart_manager'):
+                from backend.server import SmartGeminiManager
+                self.smart_manager = SmartGeminiManager()
+            
+            prompt = f"""
+            As a professional video director, break this script into individual scenes for video production:
+            
+            SCRIPT:
+            {script}
+            
+            Create scenes that are:
+            - 5-10 seconds each for optimal video generation
+            - Visually distinct and compelling
+            - Logically sequenced
+            - Cinematically interesting
+            
+            Return a JSON array of scenes with:
+            - scene_number: sequential number
+            - description: detailed visual description for video generation
+            - duration: recommended duration in seconds
+            - visual_mood: mood/atmosphere
+            - camera_suggestions: camera angle/movement
+            - lighting_mood: lighting style
+            - audio_text: dialogue or narration text
+            
+            Return ONLY valid JSON array format.
+            """
+            
+            response = await self.smart_manager.execute_task("scene_breaking", prompt)
+            
+            try:
+                scenes = json.loads(response)
+                if isinstance(scenes, list) and len(scenes) > 0:
+                    logger.info(f"Script broken into {len(scenes)} scenes using smart manager")
+                    return scenes
+                else:
+                    # Fallback to simple sentence breaking
+                    return self._create_fallback_scenes(script)
+            except json.JSONDecodeError:
+                logger.error("Failed to parse JSON from smart manager scene breaking")
+                return self._create_fallback_scenes(script)
+                
+        except Exception as e:
+            logger.error(f"Smart manager scene breaking failed: {str(e)}")
+            return self._create_fallback_scenes(script)
+    
+    def _create_fallback_scenes(self, script: str) -> List[Dict[str, Any]]:
+        """Create fallback scenes when smart manager fails"""
         try:
             # Split script into sentences for scene creation
             sentences = [s.strip() for s in script.split('.') if s.strip()]
@@ -260,12 +310,12 @@ Always provide detailed, actionable feedback and maintain high quality standards
                     "audio_text": script
                 }]
             
-            logger.info(f"Script broken into {len(scenes)} scenes")
+            logger.info(f"Fallback: Script broken into {len(scenes)} scenes")
             return scenes
             
         except Exception as e:
-            logger.error(f"Scene breaking failed: {str(e)}")
-            # Return single scene as fallback
+            logger.error(f"Fallback scene creation failed: {str(e)}")
+            # Return single scene as final fallback
             return [{
                 "scene_number": 1,
                 "description": script,
