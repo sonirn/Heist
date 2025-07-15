@@ -433,20 +433,16 @@ async def process_enhanced_video_generation(generation_id: str, project_data: Di
         generation_status[generation_id]["progress"] = 15.0
         await broadcast_status(generation_id)
         
-        # Get available voices
-        available_voices = await multi_voice_manager.get_available_voices()
+        # Initialize the TTS engine if not already done
+        if not hasattr(multi_voice_manager, 'tts_initialized'):
+            await multi_voice_manager.initialize_tts_engine()
+            multi_voice_manager.tts_initialized = True
         
-        # Assign voices using Gemini supervisor
-        voice_assignments = await gemini_supervisor.assign_character_voices(
-            script_analysis.get("characters", []),
-            available_voices
-        )
+        # Detect characters from script
+        characters = multi_voice_manager.detect_characters(project_data["script"])
         
-        # Configure multi-character voice manager
-        await multi_voice_manager.assign_voices_to_characters(
-            script_analysis.get("characters", []),
-            voice_assignments
-        )
+        # Assign voices to characters using Coqui voice manager
+        voice_assignments = await multi_voice_manager.assign_voices_to_characters(characters)
         
         # Step 3: Generate and Validate Video Clips
         generation_status[generation_id]["message"] = "Generating video clips with quality validation..."
