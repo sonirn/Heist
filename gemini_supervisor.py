@@ -223,7 +223,7 @@ Always provide detailed, actionable feedback and maintain high quality standards
     
     async def break_script_into_scenes(self, script: str) -> List[Dict[str, Any]]:
         """
-        Break script into individual scenes for video generation using smart manager
+        Break script into individual scenes for video generation
         
         Args:
             script: Input script text
@@ -232,8 +232,11 @@ Always provide detailed, actionable feedback and maintain high quality standards
             List of scene dictionaries
         """
         try:
-            # Use smart manager for scene breaking
+            # Initialize smart manager if not available
             if not hasattr(self, 'smart_manager'):
+                # Import here to avoid circular import
+                import sys
+                sys.path.append('/app')
                 from backend.server import SmartGeminiManager
                 self.smart_manager = SmartGeminiManager()
             
@@ -248,6 +251,7 @@ Always provide detailed, actionable feedback and maintain high quality standards
             - Visually distinct and compelling
             - Logically sequenced
             - Cinematically interesting
+            - Optimized for AI video generation
             
             Return a JSON array of scenes with:
             - scene_number: sequential number
@@ -257,7 +261,10 @@ Always provide detailed, actionable feedback and maintain high quality standards
             - camera_suggestions: camera angle/movement
             - lighting_mood: lighting style
             - audio_text: dialogue or narration text
+            - visual_elements: specific visual elements to include
+            - transition_from_previous: transition type
             
+            IMPORTANT: Create multiple scenes (at least 2-3) even for short scripts.
             Return ONLY valid JSON array format.
             """
             
