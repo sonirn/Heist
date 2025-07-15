@@ -238,7 +238,7 @@ class MinimaxVideoGenerator:
         """Make API request to Minimax with proper asynchronous handling"""
         try:
             # Step 1: Create video generation task
-            create_url = f"{self.api_base_url}/videos/create"
+            create_url = f"{self.api_base_url}/video_generation"
             
             logger.info(f"Making Minimax API request to: {create_url}")
             logger.info(f"Payload: {json.dumps(payload, indent=2)}")
@@ -266,7 +266,7 @@ class MinimaxVideoGenerator:
             logger.info(f"Video generation task created with ID: {task_id}")
             
             # Step 2: Poll task status until completion
-            status_url = f"{self.api_base_url}/videos/status"
+            status_url = f"{self.api_base_url}/query/video_generation"
             max_attempts = 30  # Maximum polling attempts
             attempt = 0
             
@@ -287,18 +287,14 @@ class MinimaxVideoGenerator:
                 
                 logger.info(f"Task status: {status}")
                 
-                if status == "completed":
-                    file_id = status_data.get("file_id")
-                    if file_id:
-                        logger.info(f"Video generation completed. File ID: {file_id}")
-                        return {"file_id": file_id, "task_id": task_id}
-                    else:
-                        logger.error("No file_id in completed response")
-                        return None
-                elif status == "failed":
-                    logger.error(f"Video generation failed: {status_data.get('error', 'Unknown error')}")
+                if status == "Success":
+                    # Task completed successfully
+                    logger.info("Video generation completed successfully")
+                    return status_data
+                elif status == "Failed":
+                    logger.error(f"Video generation failed: {status_data.get('message', 'Unknown error')}")
                     return None
-                elif status in ["created", "processing"]:
+                elif status in ["Queueing", "Processing"]:
                     # Wait before next poll
                     time.sleep(2)
                     attempt += 1
