@@ -363,86 +363,197 @@ class GeminiManager:
         self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
         return key
     
-    async def analyze_script(self, script: str) -> Dict:
-        """Analyze script and break it into scenes using smart manager"""
+    async def analyze_script_with_enhanced_scene_breaking(self, script: str) -> Dict:
+        """Enhanced script analysis with intelligent scene breaking for video generation"""
         prompt = f"""
-        As a professional video production director, analyze this script and break it into scenes:
+        As a professional movie director and script analyst, perform comprehensive analysis of this script for video production:
         
         SCRIPT:
         {script}
         
-        Provide a detailed analysis in JSON format with:
+        Break this script into multiple scenes optimized for video generation. Each scene should be:
+        - 5-10 seconds duration (optimal for Minimax video generation)
+        - Visually distinct and cinematic
+        - Logically sequenced for smooth narrative flow
+        - Rich in visual details for AI video generation
         
-        1. SCENES: Break down into scenes with:
-           - Scene number and description
-           - Duration estimate (5-10 seconds per scene)
-           - Visual mood and camera suggestions
-           - Audio/dialogue text
+        Return a JSON object with:
         
-        2. CHARACTERS: Identify main characters if any
+        {{
+            "story_analysis": {{
+                "narrative_flow": "description of story progression",
+                "visual_style": "recommended visual style",
+                "pacing": "fast/medium/slow",
+                "theme": "main theme"
+            }},
+            "characters": [
+                {{
+                    "name": "character_name",
+                    "personality": "detailed personality",
+                    "role": "protagonist/antagonist/narrator/supporting",
+                    "voice_characteristics": "voice description",
+                    "gender": "male/female/neutral",
+                    "age": "child/adult/elderly"
+                }}
+            ],
+            "scenes": [
+                {{
+                    "scene_number": 1,
+                    "description": "detailed visual description for video generation",
+                    "duration": 6,
+                    "visual_mood": "cinematic mood",
+                    "camera_suggestions": "specific camera work",
+                    "lighting_mood": "lighting description",
+                    "audio_text": "dialogue or narration text",
+                    "characters_present": ["character1", "character2"],
+                    "visual_elements": "specific visual elements to include",
+                    "transition_from_previous": "how to transition from previous scene"
+                }}
+            ]
+        }}
         
-        3. PRODUCTION_NOTES: Overall theme and style
-        
-        Return ONLY valid JSON format.
+        IMPORTANT: Create multiple scenes (at least 2-3) even for short scripts to ensure proper video flow.
+        Return ONLY the JSON object.
         """
         
         response = await self.smart_manager.execute_task("script_analysis", prompt)
         
         try:
-            return json.loads(response)
+            analysis = json.loads(response)
+            scenes = analysis.get("scenes", [])
+            
+            # Ensure we have multiple scenes
+            if len(scenes) < 2:
+                logger.warning("Only 1 scene generated, creating additional scenes")
+                analysis = self._enhance_scene_breakdown(script, analysis)
+            
+            logger.info(f"Script analysis completed with {len(analysis.get('scenes', []))} scenes")
+            return analysis
         except json.JSONDecodeError:
             logger.error("Failed to parse JSON from script analysis")
-            return self._create_fallback_analysis(script)
+            return self._create_enhanced_fallback_analysis(script)
     
-    async def generate_video_prompt(self, scene_description: str) -> str:
-        """Generate optimized prompt for video generation using smart manager"""
+    def _enhance_scene_breakdown(self, script: str, analysis: Dict) -> Dict:
+        """Enhance scene breakdown if only one scene is generated"""
+        sentences = [s.strip() for s in script.split('.') if s.strip()]
+        
+        if len(sentences) > 1:
+            # Create multiple scenes from sentences
+            scenes = []
+            for i, sentence in enumerate(sentences):
+                scenes.append({
+                    "scene_number": i + 1,
+                    "description": sentence.strip(),
+                    "duration": 5,
+                    "visual_mood": "cinematic",
+                    "camera_suggestions": "medium shot" if i == 0 else "close-up" if i % 2 == 1 else "wide shot",
+                    "lighting_mood": "natural",
+                    "audio_text": sentence.strip(),
+                    "characters_present": ["Narrator"],
+                    "visual_elements": "realistic environment",
+                    "transition_from_previous": "smooth cut" if i > 0 else "fade in"
+                })
+            
+            analysis["scenes"] = scenes
+        
+        return analysis
+    
+    def _create_enhanced_fallback_analysis(self, script: str) -> Dict:
+        """Create enhanced fallback analysis with multiple scenes"""
+        sentences = [s.strip() for s in script.split('.') if s.strip()]
+        
+        # Create at least 2 scenes even for short scripts
+        if len(sentences) == 1:
+            # Split long sentence into two parts
+            words = sentences[0].split()
+            mid_point = len(words) // 2
+            sentences = [
+                ' '.join(words[:mid_point]),
+                ' '.join(words[mid_point:])
+            ]
+        
+        scenes = []
+        for i, sentence in enumerate(sentences):
+            scenes.append({
+                "scene_number": i + 1,
+                "description": sentence.strip(),
+                "duration": 6,
+                "visual_mood": "cinematic",
+                "camera_suggestions": "medium shot" if i == 0 else "close-up" if i % 2 == 1 else "wide shot",
+                "lighting_mood": "natural",
+                "audio_text": sentence.strip(),
+                "characters_present": ["Narrator"],
+                "visual_elements": "realistic environment",
+                "transition_from_previous": "smooth cut" if i > 0 else "fade in"
+            })
+        
+        return {
+            "story_analysis": {
+                "narrative_flow": "Linear progression with visual variety",
+                "visual_style": "Realistic and cinematic",
+                "pacing": "medium",
+                "theme": "General storytelling"
+            },
+            "characters": [
+                {
+                    "name": "Narrator",
+                    "personality": "Clear and engaging storyteller",
+                    "role": "narrator",
+                    "voice_characteristics": "Professional and warm",
+                    "gender": "neutral",
+                    "age": "adult"
+                }
+            ],
+            "scenes": scenes
+        }
+    
+    async def generate_enhanced_video_prompt(self, scene_description: str, scene_context: Dict = None) -> str:
+        """Generate enhanced, optimized prompt for video generation"""
+        context_info = ""
+        if scene_context:
+            context_info = f"""
+            Scene Context:
+            - Scene #{scene_context.get('scene_number', 1)} of multiple scenes
+            - Duration: {scene_context.get('duration', 5)} seconds
+            - Visual mood: {scene_context.get('visual_mood', 'neutral')}
+            - Camera work: {scene_context.get('camera_suggestions', 'medium shot')}
+            - Lighting: {scene_context.get('lighting_mood', 'natural')}
+            - Transition: {scene_context.get('transition_from_previous', 'cut')}
+            """
+        
         prompt = f"""
-        Convert this scene description into an optimized prompt for AI video generation:
+        Convert this scene description into a highly optimized prompt for Minimax AI video generation:
         
-        Scene: {scene_description}
+        SCENE DESCRIPTION:
+        {scene_description}
         
-        Create a detailed, cinematic prompt that includes:
-        - Visual style and mood
-        - Camera movements and angles
-        - Lighting conditions
-        - Color palette
-        - Specific visual details
+        {context_info}
         
-        Keep it concise but descriptive (under 400 characters). Return only the optimized prompt.
+        Create a detailed, cinematic prompt that:
+        - Uses specific visual language optimized for AI video generation
+        - Includes precise camera movements and angles
+        - Specifies lighting conditions and color palette
+        - Describes character actions and environmental details
+        - Includes atmospheric and mood elements
+        - Is formatted for maximum AI video generation quality
+        
+        Requirements:
+        - Keep under 400 characters (strict limit for Minimax)
+        - Use professional cinematography terminology
+        - Be specific and highly visual
+        - Focus on elements that AI can effectively generate
+        - Include motion and dynamics
+        
+        Return ONLY the optimized video prompt, no additional text.
         """
         
         response = await self.smart_manager.execute_task("video_prompt", prompt)
         
         # Ensure prompt is under 400 characters
         if len(response) > 400:
-            response = response[:400] + "..."
+            response = response[:400].rsplit(' ', 1)[0] + "..."
         
         return response or scene_description
-    
-    def _create_fallback_analysis(self, script: str) -> Dict:
-        """Create fallback analysis when Gemini fails"""
-        return {
-            "scenes": [
-                {
-                    "scene_number": 1,
-                    "description": script,
-                    "duration": 10,
-                    "visual_mood": "neutral",
-                    "camera_suggestions": "medium shot",
-                    "audio_text": script
-                }
-            ],
-            "characters": [
-                {
-                    "name": "Narrator",
-                    "role": "narrator"
-                }
-            ],
-            "production_notes": {
-                "theme": "general",
-                "style": "realistic"
-            }
-        }
     
     async def generate_video_prompt(self, scene_description: str) -> str:
         """Generate optimized prompt for video generation"""
