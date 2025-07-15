@@ -582,6 +582,122 @@ async def upload_to_r2(file_content: bytes, file_name: str, content_type: str) -
         logger.error(f"R2 upload failed: {str(e)}")
         return None
 
+async def upload_to_r2_storage(file_path: str, object_key: str, content_type: str = "video/mp4") -> Optional[str]:
+    """
+    Upload file to R2 Storage with enhanced error handling
+    
+    Args:
+        file_path: Local path to the file
+        object_key: S3 object key (remote path)
+        content_type: MIME type of the file
+        
+    Returns:
+        Public URL of uploaded file or None if failed
+    """
+    try:
+        if not r2_client:
+            logger.error("R2 client not initialized")
+            return None
+            
+        if not os.path.exists(file_path):
+            logger.error(f"File not found: {file_path}")
+            return None
+        
+        # Get file size
+        file_size = os.path.getsize(file_path)
+        logger.info(f"Uploading {file_path} to R2 storage (size: {file_size} bytes)")
+        
+        # Upload with proper metadata
+        extra_args = {
+            'ContentType': content_type,
+            'ACL': 'public-read',
+            'Metadata': {
+                'uploaded_at': datetime.now().isoformat(),
+                'file_size': str(file_size)
+            }
+        }
+        
+        # Upload the file
+        r2_client.upload_file(
+            file_path,
+            R2_BUCKET_NAME,
+            object_key,
+            ExtraArgs=extra_args
+        )
+        
+        # Generate public URL
+        public_url = f"{R2_ENDPOINT}/{R2_BUCKET_NAME}/{object_key}"
+        logger.info(f"Successfully uploaded to R2 storage: {public_url}")
+        
+        return public_url
+        
+    except Exception as e:
+        logger.error(f"Failed to upload to R2 storage: {str(e)}")
+        return None
+
+async def create_r2_bucket_if_not_exists():
+    """Create R2 bucket if it doesn't exist"""
+    try:
+        if not r2_client:
+            logger.error("R2 client not initialized")
+            return False
+            
+        # Check if bucket exists
+        try:
+            r2_client.head_bucket(Bucket=R2_BUCKET_NAME)
+            logger.info(f"R2 bucket '{R2_BUCKET_NAME}' already exists")
+            return True
+        except ClientError as e:
+            if e.response['Error']['Code'] == '404':
+                # Bucket doesn't exist, create it
+                logger.info(f"Creating R2 bucket: {R2_BUCKET_NAME}")
+                r2_client.create_bucket(Bucket=R2_BUCKET_NAME)
+                logger.info(f"R2 bucket '{R2_BUCKET_NAME}' created successfully")
+                return True
+            else:
+                logger.error(f"Error checking R2 bucket: {str(e)}")
+                return False
+                
+    except Exception as e:
+        logger.error(f"Failed to create R2 bucket: {str(e)}")
+        return False
+
+async def upload_video_with_retry(video_path: str, generation_id: str, max_retries: int = 3) -> Optional[str]:
+    """
+    Upload video to R2 storage with retry logic
+    
+    Args:
+        video_path: Local path to video file
+        generation_id: Generation ID for naming
+        max_retries: Maximum number of retry attempts
+        
+    Returns:
+        Public URL of uploaded video or None if failed
+    """
+    for attempt in range(max_retries):
+        try:
+            # Create object key with timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            object_key = f"videos/{generation_id}/{timestamp}_final_video.mp4"
+            
+            # Upload to R2 storage
+            public_url = await upload_to_r2_storage(video_path, object_key, "video/mp4")
+            
+            if public_url:
+                logger.info(f"Video uploaded successfully on attempt {attempt + 1}")
+                return public_url
+            else:
+                logger.warning(f"Upload failed on attempt {attempt + 1}")
+                
+        except Exception as e:
+            logger.error(f"Upload attempt {attempt + 1} failed: {str(e)}")
+            
+        if attempt < max_retries - 1:
+            await asyncio.sleep(2 ** attempt)  # Exponential backoff
+    
+    logger.error(f"Failed to upload video after {max_retries} attempts")
+    return None
+
 # --- Video Processing ---
 
 async def combine_video_clips(video_clips: List[str], audio_file: str, output_path: str) -> bool:
