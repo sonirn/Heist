@@ -41,11 +41,11 @@ function App() {
   }, [generationId, isGenerating]);
 
   const startPolling = () => {
-    if (pollingInterval) {
-      clearInterval(pollingInterval);
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
     }
     
-    pollingInterval = setInterval(async () => {
+    pollingIntervalRef.current = setInterval(async () => {
       if (generationId && isGenerating) {
         try {
           const response = await fetch(`${BACKEND_URL}/api/generate/${generationId}`);
@@ -74,9 +74,9 @@ function App() {
   };
 
   const stopPolling = () => {
-    if (pollingInterval) {
-      clearInterval(pollingInterval);
-      pollingInterval = null;
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
     }
   };
 
