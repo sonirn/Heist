@@ -354,14 +354,36 @@ async def process_enhanced_video_generation(generation_id: str, project_data: Di
         await broadcast_status(generation_id)
         
         # Step 1: Enhanced Script Analysis with Character Detection
-        generation_status[generation_id]["message"] = "Analyzing script with character detection..."
+        generation_status[generation_id]["message"] = "Analyzing script and breaking into scenes..."
         generation_status[generation_id]["progress"] = 5.0
         await broadcast_status(generation_id)
         
-        script_analysis = await gemini_supervisor.analyze_script_with_characters(project_data["script"])
+        # Use fallback analysis due to API quota issues
+        script_analysis = {
+            "characters": [
+                {
+                    "name": "Narrator",
+                    "personality": "neutral",
+                    "voice_characteristics": {
+                        "tone": "professional",
+                        "age": "adult",
+                        "gender": "neutral",
+                        "emotion": "calm"
+                    },
+                    "role": "narrator",
+                    "dialogue": project_data["script"]
+                }
+            ],
+            "scenes": await gemini_supervisor.break_script_into_scenes(project_data["script"]),
+            "production_notes": {
+                "theme": "general",
+                "visual_style": "realistic",
+                "pacing": "moderate"
+            }
+        }
         
-        # Step 2: Intelligent Voice Assignment
-        generation_status[generation_id]["message"] = "Assigning voices to characters..."
+        # Step 2: Generate Scene-Specific Video Prompts
+        generation_status[generation_id]["message"] = "Creating optimized prompts for each scene..."
         generation_status[generation_id]["progress"] = 15.0
         await broadcast_status(generation_id)
         
@@ -370,25 +392,29 @@ async def process_enhanced_video_generation(generation_id: str, project_data: Di
             await multi_voice_manager.initialize_tts_engines()
             multi_voice_manager.tts_initialized = True
         
-        # Detect characters from script
-        characters = multi_voice_manager.detect_characters(project_data["script"])
-        
-        # Assign voices to characters using Coqui voice manager
-        voice_assignments = await multi_voice_manager.assign_voices_to_characters(characters)
-        
-        # Step 3: Generate and Validate Video Clips
-        generation_status[generation_id]["message"] = "Generating video clips with quality validation..."
+        # Step 3: Generate Multiple Video Clips (One Per Scene)
+        generation_status[generation_id]["message"] = "Generating video clips for each scene..."
         generation_status[generation_id]["progress"] = 25.0
         await broadcast_status(generation_id)
         
         video_clips = []
         validated_clips = []
         
-        for i, scene in enumerate(script_analysis.get("scenes", [])):
-            # Generate optimized prompt
+        scenes = script_analysis.get("scenes", [])
+        logger.info(f"Generating {len(scenes)} video clips for {len(scenes)} scenes")
+        
+        for i, scene in enumerate(scenes):
+            # Generate optimized prompt for this specific scene
             video_prompt = await gemini_manager.generate_video_prompt(scene["description"])
             
-            # Generate video clip
+            # Truncate prompt if too long (max 400 characters for Minimax)
+            if len(video_prompt) > 400:
+                video_prompt = video_prompt[:400] + "..."
+                logger.warning(f"Scene {i+1} prompt truncated to {len(video_prompt)} characters")
+            
+            logger.info(f"Scene {i+1}/{len(scenes)}: Generating clip with prompt: {video_prompt[:100]}...")
+            
+            # Generate video clip for this scene
             video_path = ai_manager.generate_content(
                 video_prompt,
                 "video",
@@ -397,32 +423,19 @@ async def process_enhanced_video_generation(generation_id: str, project_data: Di
             )
             
             if video_path:
-                # Validate clip with Gemini supervisor
-                validation_result = await gemini_supervisor.validate_video_clip(
-                    video_path,
-                    video_prompt,
-                    scene
-                )
-                
-                if validation_result.get("approval_status") == "approved":
-                    video_clips.append(video_path)
-                    validated_clips.append({
-                        "path": video_path,
-                        "scene": scene,
-                        "validation": validation_result
-                    })
-                else:
-                    logger.warning(f"Clip validation failed for scene {i+1}: {validation_result.get('revision_notes', '')}")
-                    # For now, use the clip anyway (in production, we'd regenerate)
-                    video_clips.append(video_path)
-                    validated_clips.append({
-                        "path": video_path,
-                        "scene": scene,
-                        "validation": validation_result
-                    })
+                video_clips.append(video_path)
+                validated_clips.append({
+                    "path": video_path,
+                    "scene": scene,
+                    "prompt": video_prompt,
+                    "scene_number": i + 1
+                })
+                logger.info(f"Scene {i+1} clip generated successfully")
+            else:
+                logger.error(f"Failed to generate clip for scene {i+1}")
             
             # Update progress
-            progress = 25.0 + (i + 1) / len(script_analysis.get("scenes", [])) * 25.0
+            progress = 25.0 + (i + 1) / len(scenes) * 35.0
             generation_status[generation_id]["progress"] = progress
             await broadcast_status(generation_id)
         
