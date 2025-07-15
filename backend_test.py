@@ -357,8 +357,8 @@ NARRATOR: Experience the power of AI-driven video production.
             return False
 
     async def test_minimax_aspect_ratios(self, project_id: str) -> bool:
-        """Test WAN 2.1 aspect ratio support (16:9 and 9:16)"""
-        test_name = "WAN 2.1 Aspect Ratios"
+        """Test Minimax aspect ratio support (16:9 and 9:16)"""
+        test_name = "Minimax Aspect Ratios"
         try:
             aspect_ratios = ["16:9", "9:16"]
             successful_tests = 0
