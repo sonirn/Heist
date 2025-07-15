@@ -16,6 +16,10 @@ from typing import Dict, List, Optional, Any
 from pathlib import Path
 import base64
 import io
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # FastAPI imports
 from fastapi import FastAPI, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect, File, UploadFile, Form
