@@ -588,7 +588,6 @@ async def process_enhanced_video_generation(generation_id: str, project_data: Di
                 "enhancement_data": {
                     "characters_detected": len(script_analysis.get("characters", [])),
                     "scenes_processed": len(script_analysis.get("scenes", [])),
-                    "voices_assigned": len(voice_assignments.get("voice_assignments", {})),
                     "post_production_steps": post_production_result.get("processing_steps", 0),
                     "final_quality_score": final_assessment.get("final_score", 0.0),
                     "director_approval": final_assessment.get("approval_status", "unknown")
