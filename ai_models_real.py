@@ -222,28 +222,80 @@ class MinimaxVideoGenerator:
             return self._generate_synthetic_video(prompt, aspect_ratio, duration)
     
     def _make_api_request(self, payload):
-        """Make API request to Minimax"""
+        """Make API request to Minimax with proper asynchronous handling"""
         try:
-            # Implement actual Minimax API call
-            url = f"{self.api_base_url}/video/generations"
+            # Step 1: Create video generation task
+            create_url = f"{self.api_base_url}/videos/create"
             
-            logger.info(f"Making Minimax API request to: {url}")
+            logger.info(f"Making Minimax API request to: {create_url}")
             logger.info(f"Payload: {json.dumps(payload, indent=2)}")
             
-            response = requests.post(
-                url,
+            create_response = requests.post(
+                create_url,
                 headers=self.headers,
                 json=payload,
                 timeout=30
             )
             
-            logger.info(f"API response status: {response.status_code}")
+            logger.info(f"API response status: {create_response.status_code}")
+            logger.info(f"API response: {create_response.text}")
             
-            if response.status_code == 200:
-                return response.json()
-            else:
-                logger.error(f"API request failed with status {response.status_code}: {response.text}")
+            if create_response.status_code != 200:
+                logger.error(f"API request failed with status {create_response.status_code}: {create_response.text}")
                 return None
+            
+            create_data = create_response.json()
+            if "task_id" not in create_data:
+                logger.error("No task_id in response")
+                return None
+            
+            task_id = create_data["task_id"]
+            logger.info(f"Video generation task created with ID: {task_id}")
+            
+            # Step 2: Poll task status until completion
+            status_url = f"{self.api_base_url}/videos/status"
+            max_attempts = 30  # Maximum polling attempts
+            attempt = 0
+            
+            while attempt < max_attempts:
+                status_response = requests.get(
+                    status_url,
+                    headers=self.headers,
+                    params={"task_id": task_id},
+                    timeout=10
+                )
+                
+                if status_response.status_code != 200:
+                    logger.error(f"Status check failed: {status_response.status_code}")
+                    return None
+                
+                status_data = status_response.json()
+                status = status_data.get("status", "unknown")
+                
+                logger.info(f"Task status: {status}")
+                
+                if status == "completed":
+                    file_id = status_data.get("file_id")
+                    if file_id:
+                        logger.info(f"Video generation completed. File ID: {file_id}")
+                        return {"file_id": file_id, "task_id": task_id}
+                    else:
+                        logger.error("No file_id in completed response")
+                        return None
+                elif status == "failed":
+                    logger.error(f"Video generation failed: {status_data.get('error', 'Unknown error')}")
+                    return None
+                elif status in ["created", "processing"]:
+                    # Wait before next poll
+                    time.sleep(2)
+                    attempt += 1
+                else:
+                    logger.warning(f"Unknown status: {status}")
+                    time.sleep(2)
+                    attempt += 1
+            
+            logger.error("Video generation timed out")
+            return None
             
         except Exception as e:
             logger.error(f"API request failed: {str(e)}")
