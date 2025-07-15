@@ -114,20 +114,37 @@ class MinimaxVideoGenerator:
     def _test_api_connection(self):
         """Test Minimax API connection"""
         try:
-            # Test API connection with a simple health check or model info request
-            test_url = f"{self.api_base_url}/models"
+            # Test API connection with a simple video creation request with minimal parameters
+            test_url = f"{self.api_base_url}/videos/create"
             
-            response = requests.get(
+            test_payload = {
+                "prompt": "test connection",
+                "model": "T2V-01"
+            }
+            
+            response = requests.post(
                 test_url,
                 headers=self.headers,
+                json=test_payload,
                 timeout=10
             )
             
+            # Check for successful response or expected error formats
             if response.status_code == 200:
                 logger.info("Minimax API connection successful")
                 return True
+            elif response.status_code == 401:
+                logger.warning("Minimax API authentication failed - check API key")
+                return False
+            elif response.status_code == 429:
+                logger.warning("Minimax API rate limit exceeded - but connection works")
+                return True
+            elif response.status_code in [400, 422]:
+                # Bad request but API is reachable
+                logger.info("Minimax API connection successful (API is reachable)")
+                return True
             else:
-                logger.warning(f"Minimax API test failed with status {response.status_code}")
+                logger.warning(f"Minimax API test failed with status {response.status_code}: {response.text}")
                 return False
             
         except Exception as e:
