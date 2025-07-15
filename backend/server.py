@@ -1006,8 +1006,7 @@ async def get_generation_status(generation_id: str):
 async def get_voices():
     """Get available voices"""
     try:
-        elevenlabs_manager = ElevenLabsManager()
-        voices = await elevenlabs_manager.get_voices()
+        voices = await multi_voice_manager.get_available_voices()
         return voices
     except Exception as e:
         logger.error(f"Failed to get voices: {str(e)}")
