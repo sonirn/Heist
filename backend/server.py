@@ -586,14 +586,22 @@ async def process_enhanced_video_generation(generation_id: str, project_data: Di
         # Final video path
         final_video_path = post_production_result.get("final_video", temp_video_path)
         
+        # Ensure the final video path exists
+        if not os.path.exists(final_video_path):
+            logger.warning(f"Final video file not found: {final_video_path}, using temp video")
+            final_video_path = temp_video_path
+        
         if video_clips and audio_file:
             output_path = f"/tmp/final_enhanced_video_{generation_id}.mp4"
             success = await combine_video_clips(video_clips, audio_file, output_path)
             
-            if success:
+            if success and os.path.exists(output_path):
                 final_video_path = output_path
+                logger.info(f"Combined video created successfully: {final_video_path}")
+            else:
+                logger.warning(f"Video combination failed or file not created: {output_path}")
         
-        # Step 8: Final Quality Supervision
+        # Step 8: Final Quality Supervision (only if file exists)
         generation_status[generation_id]["message"] = "Final quality review..."
         generation_status[generation_id]["progress"] = 95.0
         await broadcast_status(generation_id)
