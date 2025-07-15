@@ -24,7 +24,7 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithM
 
 # Import smart manager for enhanced capabilities
 sys.path.append('/app')
-from backend.server import SmartGeminiManager, GEMINI_MODEL_CONFIG
+# Remove circular import - will initialize SmartGeminiManager later
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
