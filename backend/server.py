@@ -107,6 +107,11 @@ current_gemini_key_index = 0
 active_connections: Dict[str, WebSocket] = {}
 generation_status: Dict[str, Dict] = {}
 
+# Initialize enhanced components
+gemini_supervisor = get_gemini_supervisor(GEMINI_API_KEYS)
+runwayml_processor = get_runwayml_processor(RUNWAYML_API_KEYS)
+multi_voice_manager = get_multi_voice_manager(ELEVENLABS_API_KEY)
+
 # --- Pydantic Models ---
 
 class ProjectRequest(BaseModel):
