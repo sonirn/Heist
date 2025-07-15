@@ -854,6 +854,9 @@ async def startup_event():
     # Initialize AI models
     ai_manager.load_models()
     
+    # Initialize enhanced multi-voice manager
+    await multi_voice_manager.initialize_tts_engines()
+    
     logger.info("Application started successfully")
 
 @app.on_event("shutdown")
