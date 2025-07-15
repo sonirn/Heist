@@ -43,6 +43,12 @@ class MinimaxVideoGenerator:
             device: Device compatibility (kept for interface consistency)
         """
         self.api_key = api_key or os.getenv("MINIMAX_API_KEY")
+        
+        # Try loading from backend/.env if not found
+        if not self.api_key:
+            from dotenv import load_dotenv
+            load_dotenv('/app/backend/.env')
+            self.api_key = os.getenv("MINIMAX_API_KEY")
         self.device = device
         self.model = None
         self.loaded = False
