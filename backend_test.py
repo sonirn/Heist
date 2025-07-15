@@ -188,9 +188,9 @@ NARRATOR: Experience the power of AI-driven video production.
             self.log_test_result(test_name, False, f"Exception: {str(e)}")
             return False
     
-    async def test_voices_endpoint(self) -> bool:
-        """Test ElevenLabs voices integration"""
-        test_name = "Voices Endpoint"
+    async def test_coqui_voices_endpoint(self) -> bool:
+        """Test Coqui TTS voices integration (replacing ElevenLabs)"""
+        test_name = "Coqui TTS Voices Endpoint"
         try:
             async with self.session.get(f"{self.api_base}/voices") as response:
                 if response.status == 200:
@@ -199,7 +199,7 @@ NARRATOR: Experience the power of AI-driven video production.
                     # Check if voices are returned
                     if isinstance(data, list):
                         if len(data) > 0:
-                            # Check voice structure
+                            # Check voice structure for Coqui TTS
                             voice = data[0]
                             required_fields = ["voice_id", "name"]
                             missing_fields = [field for field in required_fields if field not in voice]
@@ -208,11 +208,34 @@ NARRATOR: Experience the power of AI-driven video production.
                                 self.log_test_result(test_name, False, f"Voice missing fields: {missing_fields}", data)
                                 return False
                             
-                            self.log_test_result(test_name, True, f"Retrieved {len(data)} voices successfully", {"count": len(data), "sample": data[0]})
+                            # Check for Coqui-specific voice IDs
+                            coqui_voices = [v for v in data if v.get("voice_id", "").startswith("coqui_")]
+                            if len(coqui_voices) == 0:
+                                self.log_test_result(test_name, False, "No Coqui TTS voices found", data)
+                                return False
+                            
+                            # Verify expected voice categories
+                            expected_categories = ["narrator", "protagonist", "antagonist", "child", "elderly", "character"]
+                            found_categories = set()
+                            for voice in data:
+                                if "category" in voice:
+                                    found_categories.add(voice["category"])
+                            
+                            missing_categories = set(expected_categories) - found_categories
+                            if missing_categories:
+                                self.log_test_result(test_name, False, f"Missing voice categories: {missing_categories}", data)
+                                return False
+                            
+                            self.log_test_result(test_name, True, f"Retrieved {len(data)} Coqui TTS voices with {len(found_categories)} categories", {
+                                "total_voices": len(data), 
+                                "coqui_voices": len(coqui_voices),
+                                "categories": list(found_categories),
+                                "sample": data[0]
+                            })
                             return True
                         else:
-                            self.log_test_result(test_name, True, "No voices available (empty list)", {"count": 0})
-                            return True
+                            self.log_test_result(test_name, False, "No voices available (empty list)", {"count": 0})
+                            return False
                     else:
                         self.log_test_result(test_name, False, "Invalid response format (not a list)", data)
                         return False
