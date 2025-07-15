@@ -706,7 +706,6 @@ async def process_video_generation(generation_id: str, project_data: Dict):
         
         # Initialize managers
         gemini_manager = GeminiManager()
-        elevenlabs_manager = ElevenLabsManager()
         
         # Step 1: Analyze script
         generation_status[generation_id]["message"] = "Analyzing script..."
@@ -746,17 +745,31 @@ async def process_video_generation(generation_id: str, project_data: Dict):
         generation_status[generation_id]["progress"] = 70.0
         await broadcast_status(generation_id)
         
+        # Initialize the enhanced TTS engines if not already done
+        if not hasattr(multi_voice_manager, 'tts_initialized'):
+            await multi_voice_manager.initialize_tts_engines()
+            multi_voice_manager.tts_initialized = True
+        
+        # Create dialogue sequence
         full_script = " ".join([scene["audio_text"] for scene in script_analysis["scenes"]])
-        speech_audio = await elevenlabs_manager.generate_speech(
-            full_script,
-            project_data.get("voice_id")
-        )
+        dialogue_sequence = [{
+            "character": "Narrator",
+            "text": full_script,
+            "scene_context": {
+                "scene_number": 1,
+                "mood": "neutral",
+                "duration": script_analysis.get("total_duration", 10)
+            }
+        }]
+        
+        # Generate audio using multi_voice_manager
+        audio_segments = await multi_voice_manager.generate_multi_character_audio(dialogue_sequence)
         
         # Save audio to temp file
         audio_file = None
-        if speech_audio:
+        if audio_segments and audio_segments[0].get("audio_data"):
             with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as f:
-                f.write(speech_audio)
+                f.write(audio_segments[0]["audio_data"])
                 audio_file = f.name
         
         # Step 4: Combine video and audio
