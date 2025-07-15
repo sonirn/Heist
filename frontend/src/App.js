@@ -362,12 +362,13 @@ Finally, we'll demonstrate the real-time collaboration tools that keep your team
 
       <div className="generation-info">
         <div className="info-card">
-          <h3>What's happening?</h3>
+          <h3>Enhanced AI Production Process</h3>
           <ul>
-            <li>AI is analyzing your script and breaking it into scenes</li>
-            <li>Each scene is being converted into a video clip</li>
-            <li>Voice over is being generated from your script</li>
-            <li>Everything is being combined into your final video</li>
+            <li>AI analyzes your script and identifies unique characters</li>
+            <li>Each character gets an intelligently assigned voice</li>
+            <li>Video clips are generated and validated for quality</li>
+            <li>Professional post-production with color grading and effects</li>
+            <li>Final quality supervision ensures movie-level output</li>
           </ul>
         </div>
       </div>
