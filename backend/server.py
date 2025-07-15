@@ -851,14 +851,27 @@ async def root():
 
 @app.get("/api/health")
 async def health_check():
-    """Health check endpoint"""
+    """Enhanced health check endpoint with all components"""
     return {
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
         "ai_models": {
             "minimax": ai_manager.minimax_generator.loaded,
             "stable_audio": ai_manager.stable_audio.loaded
-        }
+        },
+        "enhanced_components": {
+            "gemini_supervisor": gemini_supervisor is not None,
+            "runwayml_processor": runwayml_processor is not None,
+            "multi_voice_manager": multi_voice_manager is not None,
+            "capabilities": {
+                "character_detection": True,
+                "voice_assignment": True,
+                "video_validation": True,
+                "post_production": True,
+                "quality_supervision": True
+            }
+        },
+        "version": "2.0-enhanced"
     }
 
 @app.post("/api/projects", response_model=ProjectResponse)
