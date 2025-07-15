@@ -318,14 +318,26 @@ class CoquiVoiceManager:
             return None
     
     async def _generate_with_coqui(self, text: str, voice_config: Dict) -> Optional[bytes]:
-        """Generate speech using Coqui TTS"""
+        """Generate speech using Coqui TTS or gTTS"""
         try:
             # Create temporary file for output
-            with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_file:
+            with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as temp_file:
                 temp_path = temp_file.name
             
-            # Generate speech with Coqui TTS
-            self.tts_engine.tts_to_file(text=text, file_path=temp_path)
+            if hasattr(self.tts_engine, 'tts_to_file'):
+                # Use Coqui TTS
+                self.tts_engine.tts_to_file(text=text, file_path=temp_path)
+            else:
+                # Use gTTS
+                settings = voice_config.get('settings', {})
+                speed = settings.get('speed', 1.0)
+                
+                # Adjust language and speed based on voice category
+                lang = 'en'
+                slow = speed < 1.0
+                
+                tts = self.tts_engine(text=text, lang=lang, slow=slow)
+                tts.save(temp_path)
             
             # Read the audio file
             with open(temp_path, 'rb') as f:
@@ -337,7 +349,7 @@ class CoquiVoiceManager:
             return audio_data
             
         except Exception as e:
-            logger.error(f"Coqui TTS generation failed: {str(e)}")
+            logger.error(f"TTS generation failed: {str(e)}")
             return None
     
     async def _generate_fallback_audio(self, text: str, voice_config: Dict) -> Optional[bytes]:
