@@ -530,14 +530,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Production Health Check System Enhancement"
-    - "Cache Management System Implementation"
-    - "File Management System Implementation"
-    - "Queue System Metrics Enhancement"
-    - "Enhanced WebSocket Communication"
-    - "Production Mode Configuration"
+    - "WebSocket Communication Fix"
   stuck_tasks:
-    - "Minimax API Status Handling" 
+    - "WebSocket Communication Fix"
+  test_all: false
+  test_priority: "websocket_endpoints_only" 
   test_all: false
   test_priority: "critical_issues_fixed_testing_production_features"
 
