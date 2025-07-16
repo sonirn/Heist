@@ -22,17 +22,30 @@ class CacheManager:
         self.max_cache_size = 1000
         self.default_ttl = 3600  # 1 hour
         
+        # Performance tracking
+        self.hit_count = 0
+        self.miss_count = 0
+        self.total_requests = 0
+        self.last_cleanup_time = datetime.now()
+        
     async def get(self, key: str) -> Optional[Any]:
-        """Get value from cache"""
+        """Get value from cache with performance tracking"""
         try:
+            self.total_requests += 1
+            
             # Check if key exists and hasn't expired
             if key in self.cache and key in self.ttl_cache:
                 if datetime.now() < self.ttl_cache[key]:
+                    self.hit_count += 1
+                    # Update access count
+                    self.cache[key]["access_count"] = self.cache[key].get("access_count", 0) + 1
+                    self.cache[key]["last_accessed"] = datetime.now()
                     return self.cache[key].get("value")
                 else:
                     # Remove expired key
                     await self.delete(key)
             
+            self.miss_count += 1
             return None
             
         except Exception as e:
