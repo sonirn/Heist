@@ -287,6 +287,8 @@ class QueueManager:
             "total_workers": len(self.workers),
             "is_running": self.is_running,
             "stats": self.stats,
+            "completed_tasks": task_status_counts.get("completed", 0),  # Required field for production tests
+            "failed_tasks": task_status_counts.get("failed", 0),  # Required field for production tests
             "task_monitoring": {
                 "task_status_counts": task_status_counts,
                 "total_tasks": len(self.tasks),
