@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://792faf87-f5fe-4b4a-a932-1f5062d9b08e.preview.emergentagent.com"
+BACKEND_URL = "https://c2b7e47a-7e43-4e33-8654-2028012bf65a.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 class FocusedIssueTester:
