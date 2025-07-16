@@ -739,55 +739,41 @@ async def upload_to_r2(file_content: bytes, file_name: str, content_type: str) -
 
 async def upload_to_r2_storage(file_path: str, object_key: str, content_type: str = "video/mp4") -> Optional[str]:
     """
-    Upload file to R2 Storage with enhanced error handling
+    Upload file to server storage (maintaining R2 function signature for compatibility)
     
     Args:
         file_path: Local path to the file
-        object_key: S3 object key (remote path)
+        object_key: S3 object key (used for generation_id extraction)
         content_type: MIME type of the file
         
     Returns:
-        Public URL of uploaded file or None if failed
+        Download URL of stored file or None if failed
     """
     try:
-        if not r2_client:
-            logger.error("R2 client not initialized")
-            return None
-            
-        if not os.path.exists(file_path):
-            logger.error(f"File not found: {file_path}")
-            return None
+        # Ensure server storage directory exists
+        server_storage_dir = "/tmp/output"
+        os.makedirs(server_storage_dir, exist_ok=True)
         
-        # Get file size
-        file_size = os.path.getsize(file_path)
-        logger.info(f"Uploading {file_path} to R2 storage (size: {file_size} bytes)")
+        # Extract generation_id from object_key
+        generation_id = object_key.split('/')[-1].replace('.mp4', '').replace('_final_video', '')
+        if 'videos/' in object_key:
+            generation_id = object_key.split('/')[-1].split('_')[-1].replace('.mp4', '')
         
-        # Upload with proper metadata
-        extra_args = {
-            'ContentType': content_type,
-            'ACL': 'public-read',
-            'Metadata': {
-                'uploaded_at': datetime.now().isoformat(),
-                'file_size': str(file_size)
-            }
-        }
+        final_filename = f"final_video_{generation_id}.mp4"
+        destination_path = os.path.join(server_storage_dir, final_filename)
         
-        # Upload the file
-        r2_client.upload_file(
-            file_path,
-            R2_BUCKET_NAME,
-            object_key,
-            ExtraArgs=extra_args
-        )
+        # Copy file to server storage
+        import shutil
+        shutil.copy2(file_path, destination_path)
         
-        # Generate public URL
-        public_url = f"{R2_ENDPOINT}/{R2_BUCKET_NAME}/{object_key}"
-        logger.info(f"Successfully uploaded to R2 storage: {public_url}")
+        # Schedule cleanup after 24 hours
+        await schedule_video_cleanup(generation_id, destination_path)
         
-        return public_url
+        logger.info(f"Video uploaded to server storage: {destination_path}")
+        return f"/api/download/{generation_id}"
         
     except Exception as e:
-        logger.error(f"Failed to upload to R2 storage: {str(e)}")
+        logger.error(f"Server storage upload failed: {str(e)}")
         return None
 
 async def create_r2_bucket_if_not_exists():
