@@ -889,10 +889,18 @@ Always provide detailed, actionable feedback and maintain high quality standards
             }}
             """
             
-            user_message = UserMessage(
-                text=prompt,
-                file_contents=[video_file]
-            )
+            try:
+                user_message = UserMessage(
+                    text=prompt,
+                    file_contents=[FileContentWithMimeType(
+                        file_path=video_file,
+                        mime_type="video/mp4"
+                    )]
+                )
+            except Exception as e:
+                # Fallback: If file upload fails, assess without file
+                logger.warning(f"Failed to create UserMessage with file: {e}, assessing without file")
+                user_message = UserMessage(text=prompt)
             
             # Add timeout to Gemini API call
             import asyncio
