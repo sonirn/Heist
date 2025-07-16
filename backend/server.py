@@ -1636,6 +1636,41 @@ async def get_voices():
         logger.error(f"Failed to get voices: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to get voices")
 
+@app.get("/api/download/{generation_id}")
+async def download_video(generation_id: str):
+    """Download video file from server storage"""
+    try:
+        # Construct the file path
+        server_storage_dir = "/tmp/output"
+        final_filename = f"final_video_{generation_id}.mp4"
+        video_path = os.path.join(server_storage_dir, final_filename)
+        
+        # Check if file exists
+        if not os.path.exists(video_path):
+            logger.error(f"Video file not found: {video_path}")
+            raise HTTPException(status_code=404, detail="Video file not found")
+        
+        # Get file size for proper headers
+        file_size = os.path.getsize(video_path)
+        
+        # Return the file with proper headers for video streaming
+        return FileResponse(
+            path=video_path,
+            media_type="video/mp4",
+            filename=f"generated_video_{generation_id}.mp4",
+            headers={
+                "Content-Length": str(file_size),
+                "Accept-Ranges": "bytes",
+                "Content-Disposition": f"attachment; filename=generated_video_{generation_id}.mp4"
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to download video: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to download video")
+
 @app.websocket("/api/ws/{generation_id}")
 async def websocket_endpoint(websocket: WebSocket, generation_id: str):
     """Enhanced WebSocket endpoint for real-time updates"""
