@@ -9,14 +9,21 @@ import json
 async def test_websocket():
     """Test WebSocket connection"""
     try:
-        uri = "ws://localhost:8001/api/ws/test123"
+        uri = "ws://localhost:8001/api/ws/test"
         print(f"Connecting to: {uri}")
         
         async with websockets.connect(uri) as websocket:
             print("✅ WebSocket connection established")
             
+            # Receive initial message
+            try:
+                initial_msg = await asyncio.wait_for(websocket.recv(), timeout=5.0)
+                print(f"✅ Initial message: {initial_msg}")
+            except asyncio.TimeoutError:
+                print("⚠️  No initial message received")
+            
             # Send a test message
-            await websocket.send(json.dumps({"type": "test", "message": "Hello WebSocket"}))
+            await websocket.send("Hello WebSocket")
             print("✅ Test message sent")
             
             # Try to receive a message (with timeout)
