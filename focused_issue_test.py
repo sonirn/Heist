@@ -100,6 +100,18 @@ class FocusedIssueTester:
         websocket_url = f"{BACKEND_URL.replace('https://', 'wss://')}/api/ws/{test_generation_id}"
         
         try:
+            # First, let's test if the WebSocket endpoint exists by making an HTTP request
+            logger.info("First checking if WebSocket endpoint exists via HTTP...")
+            async with aiohttp.ClientSession() as session:
+                try:
+                    async with session.get(f"{API_BASE}/ws/{test_generation_id}") as response:
+                        logger.info(f"HTTP GET to WebSocket endpoint returned: {response.status}")
+                        if response.status == 404:
+                            self.results["websocket_connection"]["details"] = "❌ WebSocket endpoint returns HTTP 404 - endpoint not properly configured"
+                            return False
+                except Exception as http_e:
+                    logger.info(f"HTTP test failed (expected): {http_e}")
+            
             # Test WebSocket connection
             logger.info(f"Attempting WebSocket connection to: {websocket_url}")
             
