@@ -713,17 +713,28 @@ class GeminiManager:
 # --- Storage Functions ---
 
 async def upload_to_r2(file_content: bytes, file_name: str, content_type: str) -> str:
-    """Upload file to Cloudflare R2"""
+    """Upload file to server storage (maintaining R2 function signature for compatibility)"""
     try:
-        r2_client.put_object(
-            Bucket="script-to-video",
-            Key=file_name,
-            Body=file_content,
-            ContentType=content_type
-        )
-        return f"{R2_ENDPOINT}/script-to-video/{file_name}"
+        # Ensure server storage directory exists
+        server_storage_dir = "/tmp/output"
+        os.makedirs(server_storage_dir, exist_ok=True)
+        
+        # Extract generation_id from filename for consistent naming
+        generation_id = file_name.split('_')[-1].replace('.mp4', '') if '_' in file_name else str(uuid.uuid4())
+        final_filename = f"final_video_{generation_id}.mp4"
+        file_path = os.path.join(server_storage_dir, final_filename)
+        
+        # Write file content to server storage
+        with open(file_path, 'wb') as f:
+            f.write(file_content)
+        
+        # Schedule cleanup after 24 hours
+        await schedule_video_cleanup(generation_id, file_path)
+        
+        logger.info(f"Video uploaded to server storage: {file_path}")
+        return f"/api/download/{generation_id}"
     except Exception as e:
-        logger.error(f"R2 upload failed: {str(e)}")
+        logger.error(f"Server storage upload failed: {str(e)}")
         return None
 
 async def upload_to_r2_storage(file_path: str, object_key: str, content_type: str = "video/mp4") -> Optional[str]:
