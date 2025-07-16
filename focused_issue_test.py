@@ -101,7 +101,7 @@ class FocusedIssueTester:
             # Test WebSocket connection
             logger.info(f"Attempting WebSocket connection to: {websocket_url}")
             
-            async with websockets.connect(websocket_url, timeout=10) as websocket:
+            async with websockets.connect(websocket_url) as websocket:
                 logger.info("✅ WebSocket connection established successfully")
                 
                 # Send a test message
