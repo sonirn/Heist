@@ -580,14 +580,16 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Video Generation Progress Monitoring - No Longer Stuck at 0%"
     - "Server Storage Implementation and Video Download Functionality"
     - "Minimax API Balance and Video Generation Completion"
     - "Gemini Supervisor LlmChat Provider Argument Fix"
   stuck_tasks:
+    - "Video Generation Progress Monitoring - No Longer Stuck at 0%"
     - "WebSocket Communication Fix"
     - "Minimax API Balance and Video Generation Completion"
   test_all: false
-  test_priority: "server_storage_migration_complete"
+  test_priority: "progress_monitoring_95_percent_stuck_critical"
 
 agent_communication:
     - agent: "main"
