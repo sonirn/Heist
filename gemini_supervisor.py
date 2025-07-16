@@ -935,6 +935,37 @@ Always provide detailed, actionable feedback and maintain high quality standards
         total_score = sum(item.get("validation_score", 0.0) for item in quality_history)
         return total_score / len(quality_history)
     
+    async def assess_final_quality(self, video_path: str, script_analysis: Dict, audio_segments: List[str]) -> Dict[str, Any]:
+        """
+        Assess final video quality (alias for supervise_final_quality)
+        
+        Args:
+            video_path: Path to the final video file
+            script_analysis: Script analysis data
+            audio_segments: List of audio segment paths
+            
+        Returns:
+            Dict containing quality assessment
+        """
+        try:
+            # Extract original script from analysis
+            original_script = script_analysis.get("original_script", "")
+            if not original_script:
+                # Try to reconstruct from scenes
+                scenes = script_analysis.get("scenes", [])
+                if scenes:
+                    original_script = " ".join([scene.get("description", "") for scene in scenes])
+            
+            # Call the existing supervise_final_quality method
+            assessment = await self.supervise_final_quality(video_path, original_script)
+            
+            logger.info(f"Final quality assessment completed: {assessment.get('approval_status', 'unknown')}")
+            return assessment
+            
+        except Exception as e:
+            logger.error(f"Final quality assessment failed: {str(e)}")
+            return self._create_fallback_final_assessment()
+    
     async def generate_enhanced_video_prompt(self, scene_description: str, scene_context: Dict = None) -> str:
         """Generate enhanced, optimized prompt for video generation"""
         context_info = ""
