@@ -2852,7 +2852,11 @@ async def run_comprehensive_production_tests():
         result = await tester.test_critical_bug_fixes()
         test_results.append(("Critical Bug Fixes - Problem.md Issues Resolution", result))
         
-        # Test 18: Error Handling
+        # Test 18: GeminiSupervisor Method Fix (CRITICAL)
+        result = await tester.test_gemini_supervisor_method_fix()
+        test_results.append(("GeminiSupervisor Method Fix - analyze_script_with_enhanced_scene_breaking", result))
+        
+        # Test 19: Error Handling
         result = await tester.test_error_handling()
         test_results.append(("Error Handling", result))
         
