@@ -295,19 +295,14 @@ class WebSocketManager:
         for client_id in disconnected_clients:
             self.disconnect(client_id)
 
-# Enhanced R2 client with proper error handling
+# Server storage initialization (replacing R2 client)
 try:
-    r2_client = boto3.client(
-        's3',
-        endpoint_url=R2_ENDPOINT,
-        aws_access_key_id=R2_ACCESS_KEY,
-        aws_secret_access_key=R2_SECRET_KEY,
-        config=Config(signature_version='s3v4', region_name='auto'),
-        verify=True
-    )
-    logger.info("R2 Storage client initialized successfully")
+    # Ensure server storage directory exists
+    os.makedirs(SERVER_STORAGE_DIR, exist_ok=True)
+    r2_client = None  # Keep for compatibility but not used
+    logger.info("Server storage initialized successfully")
 except Exception as e:
-    logger.error(f"Failed to initialize R2 Storage client: {e}")
+    logger.error(f"Failed to initialize server storage: {str(e)}")
     r2_client = None
 
 # Global variables
