@@ -58,6 +58,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from gemini_supervisor import GeminiSupervisor
 from runwayml_processor import get_runwayml_processor
+from cleanup import schedule_video_cleanup
 from enhanced_coqui_voice_manager import get_enhanced_coqui_voice_manager
 
 # Import our new production-ready modules
