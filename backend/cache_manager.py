@@ -135,7 +135,7 @@ class CacheManager:
             await self.delete(key)
     
     async def get_stats(self) -> Dict[str, Any]:
-        """Get cache statistics"""
+        """Get comprehensive cache statistics with performance metrics"""
         await self._cleanup_expired()
         
         total_size = len(self.cache)
@@ -143,11 +143,36 @@ class CacheManager:
             item["access_count"] for item in self.cache.values()
         )
         
+        # Calculate hit rate
+        hit_rate = (self.hit_count / max(self.total_requests, 1)) * 100
+        miss_rate = (self.miss_count / max(self.total_requests, 1)) * 100
+        
+        # Calculate memory usage estimation
+        memory_usage_mb = sum(
+            len(str(item["value"])) for item in self.cache.values()
+        ) / (1024 * 1024)
+        
+        # Time since last cleanup
+        time_since_cleanup = (datetime.now() - self.last_cleanup_time).total_seconds()
+        
         return {
             "total_keys": total_size,
             "total_access": total_access,
             "max_size": self.max_cache_size,
-            "hit_ratio": total_access / max(total_size, 1)
+            "hit_ratio": total_access / max(total_size, 1),
+            "performance_metrics": {
+                "hit_count": self.hit_count,
+                "miss_count": self.miss_count,
+                "total_requests": self.total_requests,
+                "hit_rate_percent": round(hit_rate, 2),
+                "miss_rate_percent": round(miss_rate, 2),
+                "memory_usage_mb": round(memory_usage_mb, 2),
+                "time_since_cleanup_seconds": round(time_since_cleanup, 2)
+            },
+            "cache_efficiency": {
+                "utilization_percent": round((total_size / self.max_cache_size) * 100, 2),
+                "average_access_per_key": round(total_access / max(total_size, 1), 2)
+            }
         }
     
     def create_cache_key(self, *args, **kwargs) -> str:
