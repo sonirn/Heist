@@ -805,7 +805,7 @@ async def create_r2_bucket_if_not_exists():
 
 async def upload_video_with_retry(video_path: str, generation_id: str, max_retries: int = 3) -> Optional[str]:
     """
-    Upload video to R2 storage with retry logic
+    Upload video to server storage with retry logic (maintaining R2 function signature)
     
     Args:
         video_path: Local path to video file
@@ -813,30 +813,37 @@ async def upload_video_with_retry(video_path: str, generation_id: str, max_retri
         max_retries: Maximum number of retry attempts
         
     Returns:
-        Public URL of uploaded video or None if failed
+        Download URL of uploaded video or None if failed
     """
     for attempt in range(max_retries):
         try:
-            # Create object key with timestamp
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            object_key = f"videos/{generation_id}/{timestamp}_final_video.mp4"
+            # Ensure server storage directory exists
+            server_storage_dir = "/tmp/output"
+            os.makedirs(server_storage_dir, exist_ok=True)
             
-            # Upload to R2 storage
-            public_url = await upload_to_r2_storage(video_path, object_key, "video/mp4")
+            # Create final video filename
+            final_filename = f"final_video_{generation_id}.mp4"
+            destination_path = os.path.join(server_storage_dir, final_filename)
             
-            if public_url:
-                logger.info(f"Video uploaded successfully on attempt {attempt + 1}")
-                return public_url
-            else:
-                logger.warning(f"Upload failed on attempt {attempt + 1}")
-                
+            # Copy to server storage
+            import shutil
+            shutil.copy2(video_path, destination_path)
+            
+            # Schedule cleanup after 24 hours
+            await schedule_video_cleanup(generation_id, destination_path)
+            
+            logger.info(f"Video uploaded to server storage on attempt {attempt + 1}: {destination_path}")
+            return f"/api/download/{generation_id}"
+            
         except Exception as e:
             logger.error(f"Upload attempt {attempt + 1} failed: {str(e)}")
             
-        if attempt < max_retries - 1:
-            await asyncio.sleep(2 ** attempt)  # Exponential backoff
+            if attempt < max_retries - 1:
+                await asyncio.sleep(2 ** attempt)  # Exponential backoff
+            else:
+                logger.error(f"All {max_retries} upload attempts failed")
+                return None
     
-    logger.error(f"Failed to upload video after {max_retries} attempts")
     return None
 
 # --- Video Processing ---
