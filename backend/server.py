@@ -221,7 +221,7 @@ async def startup_event():
         
         # Initialize AI components
         gemini_supervisor = get_gemini_supervisor(GEMINI_API_KEYS)
-        runwayml_processor = get_runwayml_processor()
+        runwayml_processor = get_runwayml_processor(RUNWAYML_API_KEYS)
         multi_voice_manager = get_enhanced_coqui_voice_manager()
         
         # Initialize WebSocket manager
