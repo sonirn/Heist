@@ -1921,11 +1921,28 @@ async def handle_video_generation_enhanced(payload: Dict[str, Any]) -> Dict[str,
         else:
             raise Exception("No video clips generated")
         
-        # Step 6: Upload to R2 Storage
-        await update_generation_status(generation_id, "processing", 95.0, "Uploading to cloud storage...")
+        # Step 6: Prepare video for local storage
+        await update_generation_status(generation_id, "processing", 95.0, "Preparing video for delivery...")
         
         if processed_video_path and os.path.exists(processed_video_path):
-            video_url = await upload_to_r2_storage(processed_video_path, generation_id)
+            # Create a final video path in the output directory
+            final_video_filename = f"final_video_{generation_id}.mp4"
+            final_video_path = os.path.join("/tmp/output", final_video_filename)
+            
+            # Ensure output directory exists
+            os.makedirs("/tmp/output", exist_ok=True)
+            
+            # Copy the processed video to the final location
+            import shutil
+            shutil.copy2(processed_video_path, final_video_path)
+            
+            # Create a download URL that points to our local file serving endpoint
+            video_url = f"/api/download/{generation_id}"
+            
+            # Schedule cleanup after 24 hours
+            await schedule_video_cleanup(generation_id, final_video_path)
+            
+            logger.info(f"Video ready for download: {final_video_path}")
         else:
             raise Exception("Processed video not found")
         
