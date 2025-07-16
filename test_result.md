@@ -480,6 +480,30 @@ backend:
           agent: "testing"
           comment: "✅ PRODUCTION MODE PROPERLY CONFIGURED! Local testing confirmed the system is correctly configured for production mode. Environment shows 'production', version shows '2.0-enhanced', and status shows 'healthy'. All AI models are properly loaded in production mode. The system is correctly configured for production deployment with optimal performance settings."
 
+  - task: "Minimax API Balance and Video Generation Completion"
+    implemented: true
+    working: false
+    file: "ai_models_real.py, backend/server.py"
+    stuck_count: 1
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "🚨 CRITICAL ISSUE DISCOVERED: Minimax API returning 'insufficient balance' error (status_code: 1008) preventing actual video generation. Backend logs show: 'API response: {\"task_id\":\"\",\"base_resp\":{\"status_code\":1008,\"status_msg\":\"insufficient balance\"}}'. This causes video generation to get stuck in an infinite loop checking empty task status. While the API integration is correctly implemented, the lack of API balance prevents completion of video generation workflow. All other components (health check, project creation, generation start) are working correctly."
+
+  - task: "Gemini Supervisor LlmChat Provider Argument Fix"
+    implemented: true
+    working: false
+    file: "gemini_supervisor.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "🔧 NEW METHOD SIGNATURE ERROR DISCOVERED: Backend logs show 'Error generating enhanced video prompt: LlmChat.__init__() got an unexpected keyword argument 'provider''. This indicates the LlmChat initialization in gemini_supervisor.py is using an incorrect method signature. The 'provider' argument is not accepted by the LlmChat constructor, causing enhanced video prompt generation to fail. This affects the video generation pipeline's ability to create optimized prompts for each scene."
+
 frontend:
   - task: "Enhanced Frontend - Removed Voice Selection"
     implemented: true
