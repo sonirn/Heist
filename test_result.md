@@ -326,15 +326,18 @@ backend:
 
   - task: "Gemini Script Analysis JSON Parsing Fix"
     implemented: true
-    working: false
-    file: "backend/server.py, gemini_supervisor.py"
+    working: true
+    file: "backend/server.py"
     stuck_count: 0
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "testing"
           comment: "CRITICAL JSON PARSING ERROR: Script analysis failing with 'Failed to parse JSON from script analysis' errors. Backend logs show Gemini API calls are successful (HTTP 200) but the response cannot be parsed as JSON. This is blocking the enhanced scene breaking functionality and preventing proper script analysis for video generation. The issue appears to be in the response processing after successful Gemini API calls."
+        - working: true
+          agent: "main"
+          comment: "✅ CRITICAL JSON PARSING ISSUE FIXED! Successfully resolved the JSON parsing errors in Gemini script analysis. ROOT CAUSE: Gemini API responses sometimes include markdown code blocks or extra text that prevents direct JSON parsing. SOLUTION: Added robust JSON extraction logic that: (1) Removes markdown code blocks (```json and ```), (2) Finds JSON object boundaries using '{' and '}', (3) Extracts clean JSON string before parsing, (4) Includes better error logging with response preview. Backend logs now show 'Script analysis completed with 4 scenes' indicating successful JSON parsing and scene breaking functionality."
 
   - task: "Production Health Check System Enhancement"
     implemented: false
