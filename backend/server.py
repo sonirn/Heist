@@ -1674,7 +1674,54 @@ async def handle_video_generation_enhanced(payload: Dict[str, Any]) -> Dict[str,
         await update_generation_status(generation_id, "processing", 20.0, "Detecting characters and assigning voices...")
         
         characters = script_analysis.get("characters", [])
-        voice_assignments = await multi_voice_manager.assign_voices_to_characters(characters, script)
+        
+        # Fix the character format to match expected format
+        def map_role_to_category(role: str, language: str = "en") -> str:
+            """Map Gemini role to voice category"""
+            role_lower = role.lower()
+            lang_prefix = "hindi_" if language == "hi" else "english_"
+            
+            if "narrator" in role_lower:
+                return f"{lang_prefix}narrator"
+            elif "protagonist" in role_lower:
+                return f"{lang_prefix}protagonist"
+            elif "antagonist" in role_lower:
+                return f"{lang_prefix}antagonist"
+            elif "child" in role_lower:
+                return f"{lang_prefix}child" if language == "hi" else f"{lang_prefix}character"
+            elif "elderly" in role_lower:
+                return f"{lang_prefix}elderly" if language == "hi" else f"{lang_prefix}character"
+            else:
+                return f"{lang_prefix}character"
+        
+        # Convert Gemini character format to expected format
+        formatted_characters = []
+        for char in characters:
+            char_language = 'hi' if any(ord(c) > 127 for c in char.get('name', '')) else 'en'
+            formatted_character = {
+                'name': char.get('name', 'Unknown'),
+                'category': map_role_to_category(char.get('role', 'character'), char_language),
+                'language': char_language,
+                'traits': [char.get('personality', ''), char.get('voice_characteristics', '')],
+                'role': char.get('role', 'character'),
+                'gender': char.get('gender', 'neutral'),
+                'age': char.get('age', 'adult')
+            }
+            formatted_characters.append(formatted_character)
+        
+        # If no characters, add a narrator
+        if not formatted_characters:
+            formatted_characters.append({
+                'name': 'Narrator',
+                'category': 'english_narrator',
+                'language': 'en',
+                'traits': ['professional', 'clear'],
+                'role': 'narrator',
+                'gender': 'neutral',
+                'age': 'adult'
+            })
+        
+        voice_assignments = await multi_voice_manager.assign_voices_to_characters(formatted_characters, script)
         
         # Step 3: Enhanced Multi-Scene Video Generation
         await update_generation_status(generation_id, "processing", 30.0, "Generating video clips for multiple scenes...")
