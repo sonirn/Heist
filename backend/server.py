@@ -1355,16 +1355,33 @@ async def root():
     return {"message": "Script-to-Video API is running"}
 
 @app.get("/api/health")
+@monitor_endpoint("health_check")
 async def health_check():
-    """Enhanced health check endpoint with all components"""
-    return {
-        "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
-        "ai_models": {
+    """Enhanced production health check endpoint with comprehensive monitoring"""
+    try:
+        # Get performance and system metrics
+        health_status = performance_monitor.get_health_status()
+        
+        # Get database stats
+        db_stats = await db_manager.get_collection_stats()
+        
+        # Get cache stats
+        cache_stats = await cache_manager.get_stats()
+        
+        # Get queue stats
+        queue_stats = await queue_manager.get_queue_stats()
+        
+        # Get storage stats
+        storage_stats = await file_manager.get_storage_stats()
+        
+        # Check AI models
+        ai_models_status = {
             "minimax": ai_manager.minimax_generator.loaded,
             "stable_audio": ai_manager.stable_audio.loaded
-        },
-        "enhanced_components": {
+        }
+        
+        # Check enhanced components
+        enhanced_components = {
             "gemini_supervisor": gemini_supervisor is not None,
             "runwayml_processor": runwayml_processor is not None,
             "multi_voice_manager": multi_voice_manager is not None,
@@ -1375,9 +1392,84 @@ async def health_check():
                 "post_production": True,
                 "quality_supervision": True
             }
-        },
-        "version": "2.0-enhanced"
-    }
+        }
+        
+        return {
+            "status": health_status["status"],
+            "timestamp": datetime.utcnow().isoformat(),
+            "version": "2.0-production",
+            "environment": os.getenv("ENVIRONMENT", "development"),
+            "ai_models": ai_models_status,
+            "enhanced_components": enhanced_components,
+            "performance": {
+                "system_metrics": health_status["system_metrics"],
+                "application_metrics": health_status["application_metrics"],
+                "warnings": health_status["warnings"]
+            },
+            "database": {
+                "connected": db is not None,
+                "collections": db_stats
+            },
+            "cache": cache_stats,
+            "queue": queue_stats,
+            "storage": storage_stats
+        }
+        
+    except Exception as e:
+        logger.error(f"Health check error: {e}")
+        performance_monitor.record_error(e)
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+# Add monitoring endpoints for production
+@app.get("/api/metrics")
+@monitor_endpoint("metrics")
+async def get_metrics():
+    """Get detailed performance metrics"""
+    try:
+        return {
+            "system_metrics": performance_monitor.get_system_metrics(),
+            "application_metrics": performance_monitor.get_application_metrics(),
+            "recent_metrics": performance_monitor.get_recent_metrics(5),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Metrics error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/errors")
+@monitor_endpoint("error_log")
+async def get_recent_errors():
+    """Get recent error logs"""
+    try:
+        return {
+            "recent_errors": performance_monitor.get_recent_errors(30),
+            "total_errors": performance_monitor.error_count,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error log error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/system-info")
+@monitor_endpoint("system_info")
+async def get_system_info():
+    """Get comprehensive system information"""
+    try:
+        return {
+            "database": await db_manager.get_collection_stats(),
+            "cache": await cache_manager.get_stats(),
+            "queue": await queue_manager.get_queue_stats(),
+            "storage": await file_manager.get_storage_stats(),
+            "performance": performance_monitor.get_health_status(),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"System info error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/projects", response_model=ProjectResponse)
 async def create_project(request: ProjectRequest):
