@@ -933,6 +933,58 @@ Always provide detailed, actionable feedback and maintain high quality standards
         
         total_score = sum(item.get("validation_score", 0.0) for item in quality_history)
         return total_score / len(quality_history)
+    
+    async def generate_enhanced_video_prompt(self, scene_description: str, scene_context: Dict = None) -> str:
+        """Generate enhanced, optimized prompt for video generation"""
+        context_info = ""
+        if scene_context:
+            context_info = f"""
+            Scene Context:
+            - Scene #{scene_context.get('scene_number', 1)} of multiple scenes
+            - Duration: {scene_context.get('duration', 5)} seconds
+            - Visual mood: {scene_context.get('visual_mood', 'neutral')}
+            - Camera work: {scene_context.get('camera_suggestions', 'medium shot')}
+            - Lighting: {scene_context.get('lighting_mood', 'natural')}
+            - Transition: {scene_context.get('transition_from_previous', 'cut')}
+            """
+        
+        prompt = f"""
+        Create a highly detailed, cinematic video prompt optimized for AI video generation:
+        
+        Scene: {scene_description}
+        {context_info}
+        
+        Requirements:
+        - Maximum 400 characters for optimal AI generation
+        - Cinematic visual style
+        - Clear action and movement
+        - Professional lighting description
+        - Specific camera angles
+        - Rich visual details
+        
+        Generate a concise but visually rich prompt that captures the essence of this scene
+        for professional video production.
+        """
+        
+        try:
+            # Use the supervisor's LLM chat functionality
+            response = await LlmChat(
+                provider="gemini",
+                model="gemini-2.5-flash-002",
+                api_key=self.api_keys[0]
+            ).send_message(prompt)
+            
+            # Clean and truncate the response
+            video_prompt = response.strip()
+            if len(video_prompt) > 400:
+                video_prompt = video_prompt[:397] + "..."
+            
+            return video_prompt
+            
+        except Exception as e:
+            logger.error(f"Error generating enhanced video prompt: {e}")
+            # Fallback to basic prompt
+            return f"Cinematic {scene_description}, professional lighting, detailed visual composition"
 
 # Global supervisor instance
 gemini_supervisor = None
