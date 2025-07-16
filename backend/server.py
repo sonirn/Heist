@@ -1340,14 +1340,7 @@ async def process_video_generation(generation_id: str, project_data: Dict):
         }
         await broadcast_status(generation_id)
 
-async def broadcast_status(generation_id: str):
-    """Broadcast status to connected WebSocket clients"""
-    if generation_id in active_connections:
-        try:
-            await active_connections[generation_id].send_json(generation_status[generation_id])
-        except:
-            # Remove broken connection
-            del active_connections[generation_id]
+# Removed duplicate broadcast_status function - using the one at line 1955
 
 # --- API Routes ---
 
