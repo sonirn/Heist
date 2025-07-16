@@ -184,6 +184,40 @@ Always provide detailed, actionable feedback and maintain high quality standards
             logger.error(f"Script analysis failed: {str(e)}")
             return self._create_fallback_analysis(script)
     
+    def _extract_json_from_response(self, response: str) -> dict:
+        """
+        Extract JSON from Gemini API response that may contain extra text
+        
+        Args:
+            response: Raw response text from Gemini
+            
+        Returns:
+            Parsed JSON dictionary
+        """
+        try:
+            # First try to parse as-is
+            return json.loads(response)
+        except json.JSONDecodeError:
+            # Look for JSON wrapped in code blocks
+            json_patterns = [
+                r'```json\s*({.*?})\s*```',
+                r'```\s*({.*?})\s*```',
+                r'({.*?})',
+                r'\[.*?\]'
+            ]
+            
+            for pattern in json_patterns:
+                matches = re.findall(pattern, response, re.DOTALL)
+                if matches:
+                    try:
+                        return json.loads(matches[0])
+                    except json.JSONDecodeError:
+                        continue
+                        
+            # If no JSON found, return empty dict
+            logger.warning(f"No valid JSON found in response: {response[:200]}...")
+            return {}
+    
     async def analyze_script_with_enhanced_scene_breaking(self, script: str) -> Dict[str, Any]:
         """
         Enhanced script analysis with intelligent scene breaking for improved video generation
