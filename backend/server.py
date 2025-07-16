@@ -1664,7 +1664,9 @@ async def handle_video_generation_enhanced(payload: Dict[str, Any]) -> Dict[str,
         # Step 1: Enhanced Script Analysis with Scene Breaking
         await update_generation_status(generation_id, "processing", 10.0, "Analyzing script with enhanced scene breaking...")
         
-        script_analysis = await gemini_supervisor.analyze_script_with_enhanced_scene_breaking(script)
+        # Use GeminiManager for script analysis (has the working method)
+        gemini_manager = GeminiManager()
+        script_analysis = await gemini_manager.analyze_script_with_enhanced_scene_breaking(script)
         if not script_analysis:
             raise Exception("Script analysis failed")
         
