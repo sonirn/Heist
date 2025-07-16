@@ -886,7 +886,12 @@ Always provide detailed, actionable feedback and maintain high quality standards
                 file_contents=[video_file]
             )
             
-            response = await self.chat.send_message(user_message)
+            # Add timeout to Gemini API call
+            import asyncio
+            response = await asyncio.wait_for(
+                self.chat.send_message(user_message),
+                timeout=20.0  # 20 second timeout for Gemini API
+            )
             
             try:
                 final_assessment = self._extract_json_from_response(response)
@@ -897,6 +902,9 @@ Always provide detailed, actionable feedback and maintain high quality standards
                 logger.error(f"Failed to parse final assessment JSON: {str(e)}")
                 return self._create_fallback_final_assessment()
                 
+        except asyncio.TimeoutError:
+            logger.warning("Gemini API call timed out for final quality assessment")
+            return self._create_fallback_final_assessment()
         except Exception as e:
             logger.error(f"Final quality assessment failed: {str(e)}")
             return self._create_fallback_final_assessment()
