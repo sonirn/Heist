@@ -668,10 +668,7 @@ Always provide detailed, actionable feedback and maintain high quality standards
             try:
                 user_message = UserMessage(
                     text=prompt,
-                    file_contents=[FileContentWithMimeType(
-                        file_path=video_file,
-                        mime_type="video/mp4"
-                    )]
+                    file_contents=[video_file]
                 )
             except Exception as e:
                 # Fallback: If file upload fails, assess without file
