@@ -1898,7 +1898,8 @@ async def handle_video_generation_enhanced(payload: Dict[str, Any]) -> Dict[str,
         
         if video_clips:
             temp_video_path = video_clips[0]  # Use first clip for now
-            processed_video_path = await runwayml_processor.comprehensive_post_production(temp_video_path, {})
+            result = await runwayml_processor.comprehensive_post_production(temp_video_path, {})
+            processed_video_path = result.get("final_video") if result.get("success") else None
         else:
             raise Exception("No video clips generated")
         
