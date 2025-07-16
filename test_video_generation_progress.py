@@ -33,7 +33,7 @@ async def create_project():
         }
         
         async with session.post(f"{BACKEND_URL}/api/projects", json=project_data) as resp:
-            if resp.status == 201:
+            if resp.status in [200, 201]:
                 project = await resp.json()
                 print(f"✅ Project created successfully: {project['project_id']}")
                 return project['project_id']
