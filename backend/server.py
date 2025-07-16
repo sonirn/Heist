@@ -1992,13 +1992,18 @@ async def update_generation_status(generation_id: str, status: str, progress: fl
     performance_monitor.record_metric("generation_progress", progress, {"generation_id": generation_id})
 
 async def broadcast_status(generation_id: str):
-    """Broadcast status to WebSocket clients"""
+    """Broadcast status to WebSocket clients with error handling"""
     if websocket_manager and generation_id in generation_status:
         status_data = generation_status[generation_id]
-        await websocket_manager.send_personal_message(
-            json.dumps(status_data),
-            generation_id
-        )
+        try:
+            await websocket_manager.send_personal_message(
+                json.dumps(status_data),
+                generation_id
+            )
+        except Exception as e:
+            logger.error(f"Failed to broadcast status via WebSocket for {generation_id}: {e}")
+            # Remove broken connection
+            websocket_manager.disconnect(generation_id)
 
 # Enhanced upload function with retry logic
 async def upload_to_r2_storage(video_path: str, generation_id: str) -> str:
