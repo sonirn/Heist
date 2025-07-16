@@ -450,15 +450,15 @@ Always provide detailed, actionable feedback and maintain high quality standards
             response = await self.smart_manager.execute_task("scene_breaking", prompt)
             
             try:
-                scenes = json.loads(response)
+                scenes = self._extract_json_from_response(response)
                 if isinstance(scenes, list) and len(scenes) > 0:
                     logger.info(f"Script broken into {len(scenes)} scenes using smart manager")
                     return scenes
                 else:
                     # Fallback to simple sentence breaking
                     return self._create_fallback_scenes(script)
-            except json.JSONDecodeError:
-                logger.error("Failed to parse JSON from smart manager scene breaking")
+            except Exception as e:
+                logger.error(f"Failed to parse JSON from smart manager scene breaking: {str(e)}")
                 return self._create_fallback_scenes(script)
                 
         except Exception as e:
