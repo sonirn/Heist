@@ -1693,6 +1693,51 @@ async def test_websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         logger.error(f"Test WebSocket error: {e}")
 
+# Server-Sent Events (SSE) endpoint as WebSocket alternative
+@app.get("/api/sse/{generation_id}")
+async def sse_endpoint(generation_id: str):
+    """Server-Sent Events endpoint for real-time updates - WebSocket alternative"""
+    
+    def generate_sse_data():
+        """Generate SSE data stream"""
+        try:
+            # Send initial connection message
+            yield f"data: {json.dumps({'type': 'connected', 'generation_id': generation_id, 'timestamp': datetime.utcnow().isoformat()})}\n\n"
+            
+            # Keep sending status updates
+            last_status = None
+            while True:
+                if generation_id in generation_status:
+                    current_status = generation_status[generation_id]
+                    
+                    # Only send if status changed
+                    if current_status != last_status:
+                        yield f"data: {json.dumps(current_status)}\n\n"
+                        last_status = current_status.copy()
+                    
+                    # If generation is complete or failed, end the stream
+                    if current_status.get("status") in ["completed", "failed"]:
+                        break
+                
+                # Wait before next check
+                import time
+                time.sleep(1)
+                
+        except Exception as e:
+            logger.error(f"SSE error for {generation_id}: {e}")
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+    
+    return StreamingResponse(
+        generate_sse_data(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Cache-Control",
+        }
+    )
+
 # Enhanced video generation task handler
 from queue_manager import task_handler
 
