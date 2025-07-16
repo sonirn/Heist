@@ -1641,19 +1641,52 @@ async def get_voices():
 async def websocket_endpoint(websocket: WebSocket, generation_id: str):
     """Enhanced WebSocket endpoint for real-time updates"""
     try:
-        await websocket_manager.connect(websocket, generation_id)
+        await websocket.accept()
+        logger.info(f"WebSocket connection accepted for {generation_id}")
+        
+        # Initialize connection with manager
+        if websocket_manager:
+            await websocket_manager.connect(websocket, generation_id)
         
         while True:
-            # Keep connection alive and handle messages
-            data = await websocket.receive_text()
-            logger.debug(f"WebSocket message from {generation_id}: {data}")
-            
-    except WebSocketDisconnect:
-        websocket_manager.disconnect(generation_id)
-        logger.info(f"WebSocket disconnected: {generation_id}")
+            try:
+                # Keep connection alive and handle messages
+                data = await websocket.receive_text()
+                logger.debug(f"WebSocket message from {generation_id}: {data}")
+                
+                # Echo back the message (for testing)
+                await websocket.send_text(f"Echo: {data}")
+                
+            except WebSocketDisconnect:
+                logger.info(f"WebSocket disconnected: {generation_id}")
+                break
+                
     except Exception as e:
         logger.error(f"WebSocket error for {generation_id}: {e}")
-        websocket_manager.disconnect(generation_id)
+    finally:
+        if websocket_manager:
+            websocket_manager.disconnect(generation_id)
+
+@app.websocket("/api/ws/test")
+async def test_websocket_endpoint(websocket: WebSocket):
+    """Simple test WebSocket endpoint"""
+    try:
+        await websocket.accept()
+        logger.info("Test WebSocket connection accepted")
+        
+        await websocket.send_text("Connection established")
+        
+        while True:
+            try:
+                data = await websocket.receive_text()
+                logger.info(f"Test WebSocket received: {data}")
+                await websocket.send_text(f"Echo: {data}")
+            except WebSocketDisconnect:
+                logger.info("Test WebSocket disconnected")
+                break
+                
+    except Exception as e:
+        logger.error(f"Test WebSocket error: {e}")
 
 # Enhanced video generation task handler
 from queue_manager import task_handler
