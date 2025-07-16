@@ -118,6 +118,9 @@ class CacheManager:
         
         for key in expired_keys:
             await self.delete(key)
+        
+        # Update last cleanup time
+        self.last_cleanup_time = current_time
     
     async def _remove_oldest(self):
         """Remove oldest cache entries when max size reached"""
