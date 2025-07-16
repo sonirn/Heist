@@ -26,23 +26,55 @@ function App() {
     loadVoices();
   }, []);
 
-  // Real-time updates using SSE (Server-Sent Events) with WebSocket fallback
+  // Enhanced real-time updates with robust fallback system
   useEffect(() => {
     if (generationId && isGenerating) {
-      connectSSE();
-      // Also start polling as final fallback
-      startPolling();
+      connectRealTimeUpdates();
     }
     return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-      if (sseRef.current) {
-        sseRef.current.close();
-      }
-      stopPolling();
+      disconnectAll();
     };
   }, [generationId, isGenerating]);
+
+  const connectRealTimeUpdates = async () => {
+    // Try connections in order of preference: SSE -> WebSocket -> Polling
+    let connected = false;
+    
+    // Try SSE first (most reliable for status updates)
+    try {
+      await connectSSE();
+      connected = true;
+      console.log('Connected via SSE');
+    } catch (error) {
+      console.warn('SSE connection failed, trying WebSocket...', error);
+    }
+    
+    // If SSE fails, try WebSocket
+    if (!connected) {
+      try {
+        await connectWebSocket();
+        connected = true;
+        console.log('Connected via WebSocket');
+      } catch (error) {
+        console.warn('WebSocket connection failed, using polling...', error);
+      }
+    }
+    
+    // Always start polling as backup (with longer intervals if real-time connection exists)
+    startPolling(connected ? 3000 : 1000); // 3s if connected, 1s if not
+  };
+
+  const disconnectAll = () => {
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    if (sseRef.current) {
+      sseRef.current.close();
+      sseRef.current = null;
+    }
+    stopPolling();
+  };
 
   const startPolling = () => {
     if (pollingIntervalRef.current) {
