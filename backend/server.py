@@ -309,7 +309,7 @@ except Exception as e:
 
 # Global variables
 current_gemini_key_index = 0
-active_connections: Dict[str, WebSocket] = {}
+# Removed unused active_connections variable - using websocket_manager.active_connections instead
 generation_status: Dict[str, Dict] = {}
 
 # Initialize enhanced components
