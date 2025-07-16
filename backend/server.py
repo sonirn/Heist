@@ -190,6 +190,107 @@ R2_ACCESS_KEY = os.getenv("R2_ACCESS_KEY", "7804ed0f387a54af1eafbe2659c062f7")
 R2_SECRET_KEY = os.getenv("R2_SECRET_KEY", "c94fe3a0d93c4594c8891b4f7fc54e5f26c76231972d8a4d0d8260bb6da61788")
 R2_BUCKET_NAME = os.getenv("R2_BUCKET_NAME", "script-to-video-storage")
 
+# Global instances for production components
+gemini_supervisor = None
+runwayml_processor = None
+multi_voice_manager = None
+websocket_manager = None
+
+# Production startup and shutdown handlers
+@app.on_event("startup")
+async def startup_event():
+    """Initialize production systems on startup"""
+    global mongodb_client, db, gemini_supervisor, runwayml_processor, multi_voice_manager, websocket_manager
+    
+    try:
+        logger.info("Starting production initialization...")
+        
+        # Initialize database with connection pooling
+        await db_manager.connect()
+        db = db_manager.db
+        
+        # Initialize file manager and start cleanup task
+        await file_manager.start_cleanup_task()
+        
+        # Initialize queue manager and start workers
+        await queue_manager.start_workers()
+        
+        # Start performance monitoring
+        performance_monitor.start_background_monitoring()
+        
+        # Initialize AI components
+        gemini_supervisor = get_gemini_supervisor(GEMINI_API_KEYS)
+        runwayml_processor = get_runwayml_processor()
+        multi_voice_manager = get_enhanced_coqui_voice_manager()
+        
+        # Initialize WebSocket manager
+        websocket_manager = WebSocketManager()
+        
+        logger.info("Production initialization completed successfully")
+        
+    except Exception as e:
+        logger.error(f"Startup error: {e}")
+        raise
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Clean shutdown of production systems"""
+    global mongodb_client
+    
+    try:
+        logger.info("Starting production shutdown...")
+        
+        # Stop queue workers
+        await queue_manager.stop_workers()
+        
+        # Close database connection
+        await db_manager.close()
+        
+        # Cleanup any remaining files
+        await file_manager.cleanup_old_files("/tmp/processing", 0)
+        
+        logger.info("Production shutdown completed")
+        
+    except Exception as e:
+        logger.error(f"Shutdown error: {e}")
+
+# Enhanced WebSocket manager for real-time updates
+class WebSocketManager:
+    def __init__(self):
+        self.active_connections: Dict[str, WebSocket] = {}
+    
+    async def connect(self, websocket: WebSocket, client_id: str):
+        await websocket.accept()
+        self.active_connections[client_id] = websocket
+        logger.info(f"WebSocket connected: {client_id}")
+    
+    def disconnect(self, client_id: str):
+        if client_id in self.active_connections:
+            del self.active_connections[client_id]
+            logger.info(f"WebSocket disconnected: {client_id}")
+    
+    async def send_personal_message(self, message: str, client_id: str):
+        if client_id in self.active_connections:
+            websocket = self.active_connections[client_id]
+            try:
+                await websocket.send_text(message)
+            except Exception as e:
+                logger.error(f"Error sending message to {client_id}: {e}")
+                self.disconnect(client_id)
+    
+    async def broadcast(self, message: str):
+        disconnected_clients = []
+        for client_id, websocket in self.active_connections.items():
+            try:
+                await websocket.send_text(message)
+            except Exception as e:
+                logger.error(f"Error broadcasting to {client_id}: {e}")
+                disconnected_clients.append(client_id)
+        
+        # Clean up disconnected clients
+        for client_id in disconnected_clients:
+            self.disconnect(client_id)
+
 # Enhanced R2 client with proper error handling
 try:
     r2_client = boto3.client(
