@@ -109,15 +109,6 @@ function App() {
         }
       }
     }, interval);
-              setIsGenerating(false);
-              stopPolling();
-            }
-          }
-        } catch (error) {
-          console.error('Error polling status:', error);
-        }
-      }
-    }, 2000); // Poll every 2 seconds
   };
 
   const stopPolling = () => {
