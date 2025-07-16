@@ -2915,6 +2915,7 @@ async def run_comprehensive_production_tests():
             "Production Database Integration",
             "Queue-Based Video Generation System",
             "Enhanced Component Integration",
+            "GeminiSupervisor Method Fix - analyze_script_with_enhanced_scene_breaking",
             "Video Generation Progress Monitoring"
         ]
         
