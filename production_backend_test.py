@@ -866,7 +866,7 @@ NARRATOR: Experience the future of video creation with professional-grade result
 async def main():
     """Main test execution"""
     # Get backend URL from environment
-    backend_url = "https://35d6a8ee-4aab-4d47-8545-360d96903d4e.preview.emergentagent.com"
+    backend_url = "https://ac967fb5-da9e-45e7-b4fa-d8f39d0ce9b3.preview.emergentagent.com"
     
     logger.info("🚀 Starting Production Backend Testing...")
     logger.info(f"Backend URL: {backend_url}")
