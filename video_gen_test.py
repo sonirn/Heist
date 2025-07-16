@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 async def test_video_generation_issue():
     """Test the critical video generation issue seen in logs"""
-    backend_url = "https://2c2d3b4e-a488-4cf6-888d-a228a43df153.preview.emergentagent.com"
+    backend_url = "https://89c8dad4-e406-4ba9-bb76-c3856de90963.preview.emergentagent.com"
     
     async with aiohttp.ClientSession() as session:
         # Create a simple project
