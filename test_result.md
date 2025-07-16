@@ -355,8 +355,8 @@ backend:
           comment: "✅ CRITICAL JSON PARSING ISSUE FIXED! Successfully resolved the JSON parsing errors in Gemini script analysis. ROOT CAUSE: Gemini API responses sometimes include markdown code blocks or extra text that prevents direct JSON parsing. SOLUTION: Added robust JSON extraction logic that: (1) Removes markdown code blocks (```json and ```), (2) Finds JSON object boundaries using '{' and '}', (3) Extracts clean JSON string before parsing, (4) Includes better error logging with response preview. Backend logs now show 'Script analysis completed with 4 scenes' indicating successful JSON parsing and scene breaking functionality."
 
   - task: "Production Health Check System Enhancement"
-    implemented: false
-    working: false
+    implemented: true
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
@@ -368,6 +368,9 @@ backend:
         - working: false
           agent: "testing"
           comment: "STORAGE METRICS STRUCTURE ISSUE: Storage metrics exist but are nested in storage.summary instead of at the top level. Fields total_files, total_size, and cleanup_enabled are present in storage.summary.total_files, storage.summary.total_size, and storage.summary.cleanup_enabled but the API expects them at storage.total_files level. This is a structural issue that needs to be fixed for API consistency."
+        - working: true
+          agent: "testing"
+          comment: "✅ PRODUCTION HEALTH CHECK SYSTEM ENHANCEMENT RESOLVED! Focused testing confirmed that storage metrics (total_files, total_size, cleanup_enabled) are now properly available at the root level of the storage section in the health check endpoint. The fields exist at storage.total_files, storage.total_size, and storage.cleanup_enabled as required. The fields also exist in storage.summary for backward compatibility, but the primary requirement of having them at the root level is satisfied. This issue is now resolved and working correctly."
 
   - task: "Cache Management System Implementation"
     implemented: true
