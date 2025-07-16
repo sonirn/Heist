@@ -1343,6 +1343,617 @@ NARRATOR: Experience the power of AI-driven video production.
         except Exception as e:
             self.log_test_result(test_name, False, f"Exception: {str(e)}")
             return False
+
+    async def test_production_health_check(self) -> bool:
+        """Test enhanced production health check with comprehensive system metrics"""
+        test_name = "Production Health Check System"
+        try:
+            logger.info("🏥 TESTING PRODUCTION HEALTH CHECK SYSTEM")
+            logger.info("=" * 80)
+            
+            async with self.session.get(f"{self.api_base}/health") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    
+                    # Check for production-specific fields
+                    required_production_fields = [
+                        "status", "timestamp", "version", "environment",
+                        "ai_models", "enhanced_components", "performance",
+                        "database", "cache", "queue", "storage"
+                    ]
+                    
+                    missing_fields = [field for field in required_production_fields if field not in data]
+                    if missing_fields:
+                        self.log_test_result(test_name, False, f"Missing production fields: {missing_fields}", data)
+                        return False
+                    
+                    # Check version is production ready
+                    version = data.get("version", "")
+                    if not version.endswith("-production"):
+                        logger.info(f"⚠️  Version '{version}' should end with '-production'")
+                    
+                    # Check performance metrics
+                    performance = data.get("performance", {})
+                    required_perf_fields = ["system_metrics", "application_metrics", "warnings"]
+                    missing_perf = [field for field in required_perf_fields if field not in performance]
+                    if missing_perf:
+                        logger.info(f"❌ Missing performance fields: {missing_perf}")
+                        return False
+                    
+                    # Check database status
+                    database = data.get("database", {})
+                    if not database.get("connected", False):
+                        logger.info("❌ Database not connected")
+                        return False
+                    
+                    # Check cache status
+                    cache = data.get("cache", {})
+                    if "hit_rate" not in cache:
+                        logger.info("❌ Cache metrics missing")
+                        return False
+                    
+                    # Check queue status
+                    queue = data.get("queue", {})
+                    if "active_tasks" not in queue:
+                        logger.info("❌ Queue metrics missing")
+                        return False
+                    
+                    # Check storage status
+                    storage = data.get("storage", {})
+                    if "total_files" not in storage:
+                        logger.info("❌ Storage metrics missing")
+                        return False
+                    
+                    logger.info("✅ All production health check components verified")
+                    self.log_test_result(test_name, True, "Production health check passed with all metrics", data)
+                    return True
+                else:
+                    self.log_test_result(test_name, False, f"HTTP {response.status}", {"status": response.status})
+                    return False
+                    
+        except Exception as e:
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
+
+    async def test_performance_monitoring_endpoints(self) -> bool:
+        """Test /api/metrics and /api/system-info endpoints for performance monitoring"""
+        test_name = "Performance Monitoring Endpoints"
+        try:
+            logger.info("📊 TESTING PERFORMANCE MONITORING ENDPOINTS")
+            logger.info("=" * 80)
+            
+            tests_passed = 0
+            total_tests = 3
+            
+            # Test 1: /api/metrics endpoint
+            logger.info("📈 Testing /api/metrics endpoint...")
+            async with self.session.get(f"{self.api_base}/metrics") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    required_fields = ["system_metrics", "application_metrics", "recent_metrics", "timestamp"]
+                    
+                    if all(field in data for field in required_fields):
+                        tests_passed += 1
+                        logger.info("✅ /api/metrics endpoint working with all required fields")
+                    else:
+                        missing = [f for f in required_fields if f not in data]
+                        logger.info(f"❌ /api/metrics missing fields: {missing}")
+                else:
+                    logger.info(f"❌ /api/metrics failed: HTTP {response.status}")
+            
+            # Test 2: /api/system-info endpoint
+            logger.info("🖥️  Testing /api/system-info endpoint...")
+            async with self.session.get(f"{self.api_base}/system-info") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    required_fields = ["database", "cache", "queue", "storage", "performance", "timestamp"]
+                    
+                    if all(field in data for field in required_fields):
+                        tests_passed += 1
+                        logger.info("✅ /api/system-info endpoint working with all required fields")
+                    else:
+                        missing = [f for f in required_fields if f not in data]
+                        logger.info(f"❌ /api/system-info missing fields: {missing}")
+                else:
+                    logger.info(f"❌ /api/system-info failed: HTTP {response.status}")
+            
+            # Test 3: /api/errors endpoint
+            logger.info("🚨 Testing /api/errors endpoint...")
+            async with self.session.get(f"{self.api_base}/errors") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    required_fields = ["recent_errors", "total_errors", "timestamp"]
+                    
+                    if all(field in data for field in required_fields):
+                        tests_passed += 1
+                        logger.info("✅ /api/errors endpoint working with all required fields")
+                    else:
+                        missing = [f for f in required_fields if f not in data]
+                        logger.info(f"❌ /api/errors missing fields: {missing}")
+                else:
+                    logger.info(f"❌ /api/errors failed: HTTP {response.status}")
+            
+            success = tests_passed == total_tests
+            self.log_test_result(
+                test_name, 
+                success, 
+                f"Performance monitoring endpoints: {tests_passed}/{total_tests} passed",
+                {"passed": tests_passed, "total": total_tests}
+            )
+            return success
+            
+        except Exception as e:
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
+
+    async def test_queue_based_video_generation(self, project_id: str) -> bool:
+        """Test queue-based video generation with priority handling and task monitoring"""
+        test_name = "Queue-Based Video Generation System"
+        try:
+            logger.info("🔄 TESTING QUEUE-BASED VIDEO GENERATION")
+            logger.info("=" * 80)
+            
+            # Start multiple generations to test queue system
+            generation_ids = []
+            
+            for i in range(3):
+                generation_data = {
+                    "project_id": project_id,
+                    "script": f"Queue test {i+1}: A beautiful scene with mountains and rivers.",
+                    "aspect_ratio": "16:9"
+                }
+                
+                async with self.session.post(
+                    f"{self.api_base}/generate",
+                    json=generation_data,
+                    headers={"Content-Type": "application/json"}
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        generation_id = data.get("generation_id")
+                        if generation_id:
+                            generation_ids.append(generation_id)
+                            logger.info(f"✅ Generation {i+1} queued: {generation_id}")
+                        else:
+                            logger.info(f"❌ Generation {i+1} failed to queue")
+                    else:
+                        logger.info(f"❌ Generation {i+1} request failed: HTTP {response.status}")
+            
+            if len(generation_ids) == 0:
+                self.log_test_result(test_name, False, "No generations could be queued")
+                return False
+            
+            # Monitor queue processing
+            await asyncio.sleep(3)  # Allow queue processing to start
+            
+            # Check if tasks are being processed with proper status
+            processed_count = 0
+            for gen_id in generation_ids:
+                async with self.session.get(f"{self.api_base}/generate/{gen_id}") as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        status = data.get("status", "")
+                        
+                        # Check for queue-related statuses
+                        if status in ["queued", "processing", "completed", "failed"]:
+                            processed_count += 1
+                            logger.info(f"✅ Generation {gen_id[:8]}... status: {status}")
+                        else:
+                            logger.info(f"❌ Generation {gen_id[:8]}... invalid status: {status}")
+                    else:
+                        logger.info(f"❌ Failed to get status for {gen_id[:8]}...")
+            
+            # Check queue metrics
+            async with self.session.get(f"{self.api_base}/system-info") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    queue_info = data.get("queue", {})
+                    
+                    if "active_tasks" in queue_info and "completed_tasks" in queue_info:
+                        logger.info(f"✅ Queue metrics available: {queue_info}")
+                        queue_working = True
+                    else:
+                        logger.info("❌ Queue metrics missing")
+                        queue_working = False
+                else:
+                    logger.info("❌ System info endpoint failed")
+                    queue_working = False
+            
+            success = processed_count >= len(generation_ids) // 2 and queue_working
+            self.log_test_result(
+                test_name, 
+                success, 
+                f"Queue system: {processed_count}/{len(generation_ids)} tasks processed, metrics: {queue_working}",
+                {
+                    "queued_tasks": len(generation_ids),
+                    "processed_tasks": processed_count,
+                    "queue_metrics": queue_working
+                }
+            )
+            return success
+            
+        except Exception as e:
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
+
+    async def test_database_optimization(self) -> bool:
+        """Test production database integration with connection pooling and indexing"""
+        test_name = "Production Database Integration"
+        try:
+            logger.info("🗄️  TESTING PRODUCTION DATABASE INTEGRATION")
+            logger.info("=" * 80)
+            
+            # Test database health and connection pooling
+            async with self.session.get(f"{self.api_base}/system-info") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    database_info = data.get("database", {})
+                    
+                    # Check for production database features
+                    required_db_fields = ["connected", "collections"]
+                    missing_fields = [field for field in required_db_fields if field not in database_info]
+                    
+                    if missing_fields:
+                        logger.info(f"❌ Missing database fields: {missing_fields}")
+                        return False
+                    
+                    # Check if collections are properly indexed
+                    collections = database_info.get("collections", {})
+                    if not collections:
+                        logger.info("❌ No collection statistics available")
+                        return False
+                    
+                    logger.info(f"✅ Database connected with {len(collections)} collections")
+                    
+                    # Test database performance with multiple operations
+                    start_time = time.time()
+                    
+                    # Create multiple projects to test connection pooling
+                    project_ids = []
+                    for i in range(5):
+                        project_data = {
+                            "script": f"Database test project {i+1}",
+                            "aspect_ratio": "16:9",
+                            "voice_name": "default"
+                        }
+                        
+                        async with self.session.post(
+                            f"{self.api_base}/projects",
+                            json=project_data,
+                            headers={"Content-Type": "application/json"}
+                        ) as proj_response:
+                            if proj_response.status == 200:
+                                proj_data = await proj_response.json()
+                                project_id = proj_data.get("project_id")
+                                if project_id:
+                                    project_ids.append(project_id)
+                    
+                    db_operation_time = time.time() - start_time
+                    
+                    # Test concurrent reads
+                    start_time = time.time()
+                    read_tasks = []
+                    for project_id in project_ids:
+                        read_tasks.append(self.session.get(f"{self.api_base}/projects/{project_id}"))
+                    
+                    # Execute concurrent reads
+                    responses = await asyncio.gather(*read_tasks, return_exceptions=True)
+                    concurrent_read_time = time.time() - start_time
+                    
+                    successful_reads = sum(1 for r in responses if hasattr(r, 'status') and r.status == 200)
+                    
+                    # Performance thresholds for production database
+                    write_threshold = 10.0  # seconds for 5 writes
+                    read_threshold = 5.0   # seconds for 5 concurrent reads
+                    
+                    performance_ok = (
+                        db_operation_time < write_threshold and
+                        concurrent_read_time < read_threshold and
+                        successful_reads >= len(project_ids) // 2
+                    )
+                    
+                    logger.info(f"✅ Database operations: {len(project_ids)} writes in {db_operation_time:.2f}s")
+                    logger.info(f"✅ Concurrent reads: {successful_reads}/{len(project_ids)} in {concurrent_read_time:.2f}s")
+                    
+                    self.log_test_result(
+                        test_name, 
+                        performance_ok, 
+                        f"DB performance: writes {db_operation_time:.2f}s, reads {concurrent_read_time:.2f}s",
+                        {
+                            "write_time": db_operation_time,
+                            "read_time": concurrent_read_time,
+                            "successful_reads": successful_reads,
+                            "total_operations": len(project_ids),
+                            "collections": len(collections)
+                        }
+                    )
+                    return performance_ok
+                else:
+                    self.log_test_result(test_name, False, f"System info failed: HTTP {response.status}")
+                    return False
+                    
+        except Exception as e:
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
+
+    async def test_cache_management(self) -> bool:
+        """Test cache management system for improved performance"""
+        test_name = "Cache Management System"
+        try:
+            logger.info("🗂️  TESTING CACHE MANAGEMENT SYSTEM")
+            logger.info("=" * 80)
+            
+            # Test cache metrics
+            async with self.session.get(f"{self.api_base}/system-info") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    cache_info = data.get("cache", {})
+                    
+                    # Check for cache metrics
+                    required_cache_fields = ["hit_rate", "total_requests", "cache_size"]
+                    missing_fields = [field for field in required_cache_fields if field not in cache_info]
+                    
+                    if missing_fields:
+                        logger.info(f"❌ Missing cache fields: {missing_fields}")
+                        return False
+                    
+                    hit_rate = cache_info.get("hit_rate", 0)
+                    total_requests = cache_info.get("total_requests", 0)
+                    cache_size = cache_info.get("cache_size", 0)
+                    
+                    logger.info(f"✅ Cache metrics: hit_rate={hit_rate}%, requests={total_requests}, size={cache_size}")
+                    
+                    # Test cache performance with repeated requests
+                    test_endpoint = f"{self.api_base}/health"
+                    
+                    # Make multiple requests to test caching
+                    start_time = time.time()
+                    for i in range(10):
+                        async with self.session.get(test_endpoint) as cache_response:
+                            if cache_response.status != 200:
+                                logger.info(f"❌ Cache test request {i+1} failed")
+                                return False
+                    
+                    cache_test_time = time.time() - start_time
+                    
+                    # Check if cache metrics updated
+                    async with self.session.get(f"{self.api_base}/system-info") as response2:
+                        if response2.status == 200:
+                            data2 = await response2.json()
+                            cache_info2 = data2.get("cache", {})
+                            
+                            new_total_requests = cache_info2.get("total_requests", 0)
+                            requests_increased = new_total_requests > total_requests
+                            
+                            logger.info(f"✅ Cache test completed in {cache_test_time:.2f}s")
+                            logger.info(f"✅ Cache requests increased: {total_requests} → {new_total_requests}")
+                            
+                            # Cache should improve performance (under 2 seconds for 10 requests)
+                            performance_ok = cache_test_time < 2.0 and requests_increased
+                            
+                            self.log_test_result(
+                                test_name, 
+                                performance_ok, 
+                                f"Cache performance: {cache_test_time:.2f}s for 10 requests, hit_rate={hit_rate}%",
+                                {
+                                    "initial_hit_rate": hit_rate,
+                                    "test_time": cache_test_time,
+                                    "requests_before": total_requests,
+                                    "requests_after": new_total_requests,
+                                    "cache_size": cache_size
+                                }
+                            )
+                            return performance_ok
+                        else:
+                            logger.info("❌ Failed to get updated cache metrics")
+                            return False
+                else:
+                    self.log_test_result(test_name, False, f"System info failed: HTTP {response.status}")
+                    return False
+                    
+        except Exception as e:
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
+
+    async def test_file_management_system(self) -> bool:
+        """Test file management system with cleanup processes"""
+        test_name = "File Management System"
+        try:
+            logger.info("📁 TESTING FILE MANAGEMENT SYSTEM")
+            logger.info("=" * 80)
+            
+            # Test storage metrics
+            async with self.session.get(f"{self.api_base}/system-info") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    storage_info = data.get("storage", {})
+                    
+                    # Check for storage metrics
+                    required_storage_fields = ["total_files", "total_size", "cleanup_enabled"]
+                    missing_fields = [field for field in required_storage_fields if field not in storage_info]
+                    
+                    if missing_fields:
+                        logger.info(f"❌ Missing storage fields: {missing_fields}")
+                        return False
+                    
+                    total_files = storage_info.get("total_files", 0)
+                    total_size = storage_info.get("total_size", 0)
+                    cleanup_enabled = storage_info.get("cleanup_enabled", False)
+                    
+                    logger.info(f"✅ Storage metrics: files={total_files}, size={total_size}B, cleanup={cleanup_enabled}")
+                    
+                    # Test file operations by creating projects (which create files)
+                    initial_files = total_files
+                    
+                    # Create a few projects to generate files
+                    for i in range(3):
+                        project_data = {
+                            "script": f"File management test {i+1}",
+                            "aspect_ratio": "16:9",
+                            "voice_name": "default"
+                        }
+                        
+                        async with self.session.post(
+                            f"{self.api_base}/projects",
+                            json=project_data,
+                            headers={"Content-Type": "application/json"}
+                        ) as proj_response:
+                            if proj_response.status != 200:
+                                logger.info(f"❌ Project creation {i+1} failed")
+                                return False
+                    
+                    # Check if file count changed
+                    await asyncio.sleep(2)  # Allow file operations to complete
+                    
+                    async with self.session.get(f"{self.api_base}/system-info") as response2:
+                        if response2.status == 200:
+                            data2 = await response2.json()
+                            storage_info2 = data2.get("storage", {})
+                            
+                            new_total_files = storage_info2.get("total_files", 0)
+                            new_total_size = storage_info2.get("total_size", 0)
+                            
+                            files_managed = new_total_files >= initial_files
+                            size_tracked = new_total_size >= total_size
+                            
+                            logger.info(f"✅ File tracking: {initial_files} → {new_total_files} files")
+                            logger.info(f"✅ Size tracking: {total_size} → {new_total_size} bytes")
+                            
+                            success = files_managed and size_tracked and cleanup_enabled
+                            
+                            self.log_test_result(
+                                test_name, 
+                                success, 
+                                f"File management: {new_total_files} files, {new_total_size}B, cleanup={cleanup_enabled}",
+                                {
+                                    "initial_files": initial_files,
+                                    "final_files": new_total_files,
+                                    "initial_size": total_size,
+                                    "final_size": new_total_size,
+                                    "cleanup_enabled": cleanup_enabled
+                                }
+                            )
+                            return success
+                        else:
+                            logger.info("❌ Failed to get updated storage metrics")
+                            return False
+                else:
+                    self.log_test_result(test_name, False, f"System info failed: HTTP {response.status}")
+                    return False
+                    
+        except Exception as e:
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
+
+    async def test_enhanced_websocket_communication(self, generation_id: str) -> bool:
+        """Test enhanced WebSocket communication for real-time updates"""
+        test_name = "Enhanced WebSocket Communication"
+        try:
+            logger.info("🔌 TESTING ENHANCED WEBSOCKET COMMUNICATION")
+            logger.info("=" * 80)
+            
+            # Convert HTTP URL to WebSocket URL
+            ws_url = self.base_url.replace('https://', 'wss://').replace('http://', 'ws://')
+            ws_endpoint = f"{ws_url}/api/ws/{generation_id}"
+            
+            logger.info(f"🔗 Connecting to WebSocket: {ws_endpoint}")
+            
+            try:
+                # Test WebSocket connection with timeout
+                websocket = await asyncio.wait_for(
+                    websockets.connect(ws_endpoint), 
+                    timeout=10.0
+                )
+                
+                logger.info("✅ WebSocket connection established")
+                
+                # Test sending and receiving messages
+                test_messages = ["ping", "status_request", "heartbeat"]
+                responses_received = 0
+                
+                for message in test_messages:
+                    try:
+                        await websocket.send(message)
+                        logger.info(f"📤 Sent: {message}")
+                        
+                        # Try to receive response with timeout
+                        try:
+                            response = await asyncio.wait_for(websocket.recv(), timeout=3.0)
+                            responses_received += 1
+                            logger.info(f"📥 Received: {response[:50]}...")
+                        except asyncio.TimeoutError:
+                            logger.info(f"⏰ No response for: {message}")
+                            
+                    except Exception as msg_e:
+                        logger.info(f"❌ Message error for {message}: {msg_e}")
+                
+                # Test real-time updates by monitoring generation status
+                logger.info("📊 Testing real-time status updates...")
+                
+                status_updates = []
+                monitor_time = 10  # seconds
+                start_time = time.time()
+                
+                try:
+                    while time.time() - start_time < monitor_time:
+                        try:
+                            update = await asyncio.wait_for(websocket.recv(), timeout=2.0)
+                            status_updates.append(update)
+                            logger.info(f"📈 Status update: {update[:100]}...")
+                        except asyncio.TimeoutError:
+                            # No update received, continue monitoring
+                            pass
+                        except websockets.exceptions.ConnectionClosed:
+                            logger.info("🔌 WebSocket connection closed during monitoring")
+                            break
+                            
+                except Exception as monitor_e:
+                    logger.info(f"⚠️  Monitoring error: {monitor_e}")
+                
+                await websocket.close()
+                
+                # Evaluate WebSocket performance
+                connection_ok = True  # Connection was established
+                messaging_ok = responses_received > 0  # At least some responses
+                realtime_ok = len(status_updates) > 0  # At least some status updates
+                
+                logger.info(f"✅ Connection: {connection_ok}")
+                logger.info(f"✅ Messaging: {messaging_ok} ({responses_received}/{len(test_messages)} responses)")
+                logger.info(f"✅ Real-time updates: {realtime_ok} ({len(status_updates)} updates)")
+                
+                # WebSocket is working if connection works and either messaging or real-time updates work
+                success = connection_ok and (messaging_ok or realtime_ok)
+                
+                self.log_test_result(
+                    test_name, 
+                    success, 
+                    f"WebSocket: connection={connection_ok}, messaging={messaging_ok}, realtime={realtime_ok}",
+                    {
+                        "connection_established": connection_ok,
+                        "responses_received": responses_received,
+                        "total_messages": len(test_messages),
+                        "status_updates": len(status_updates),
+                        "monitoring_time": monitor_time
+                    }
+                )
+                return success
+                
+            except asyncio.TimeoutError:
+                logger.info("❌ WebSocket connection timeout")
+                self.log_test_result(test_name, False, "WebSocket connection timeout")
+                return False
+            except websockets.exceptions.InvalidURI:
+                logger.info("❌ Invalid WebSocket URI")
+                self.log_test_result(test_name, False, "Invalid WebSocket URI")
+                return False
+            except Exception as ws_e:
+                logger.info(f"❌ WebSocket error: {ws_e}")
+                self.log_test_result(test_name, False, f"WebSocket error: {ws_e}")
+                return False
+                
+        except Exception as e:
+            self.log_test_result(test_name, False, f"Exception: {str(e)}")
+            return False
     
     async def test_elevenlabs_api_key_verification(self) -> bool:
         """Test ElevenLabs API Key Verification - Focus on voice generation pipeline"""
