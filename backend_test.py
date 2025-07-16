@@ -2749,7 +2749,7 @@ async def run_comprehensive_production_tests():
     """Run comprehensive production backend tests for all enhanced features"""
     
     # Get backend URL from frontend .env
-    backend_url = "https://d28cdeca-dff7-4f72-a7e5-53a8cf43f6d9.preview.emergentagent.com"
+    backend_url = "https://4735bc1c-ede9-4807-85b3-92815820cddc.preview.emergentagent.com"
     
     logger.info("🚀 STARTING COMPREHENSIVE PRODUCTION BACKEND TESTING")
     logger.info("=" * 100)
