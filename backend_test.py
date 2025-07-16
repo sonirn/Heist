@@ -2865,15 +2865,15 @@ async def run_comprehensive_production_tests():
         logger.info("=" * 80)
         
         if project_id:
-            # Test 19: Parameter Validation
+            # Test 20: Parameter Validation
             result = await tester.test_parameter_validation(project_id)
             test_results.append(("Parameter Validation (Minimax)", result))
             
-            # Test 20: Performance Metrics
+            # Test 21: Performance Metrics
             result = await tester.test_performance_metrics(project_id)
             test_results.append(("Performance Metrics", result))
             
-            # Test 21: Fallback Mechanisms
+            # Test 22: Fallback Mechanisms
             result = await tester.test_fallback_mechanisms(project_id)
             test_results.append(("Fallback Mechanisms", result))
         
@@ -2881,7 +2881,7 @@ async def run_comprehensive_production_tests():
         logger.info("\n🎯 SPECIAL FOCUS TEST - VIDEO GENERATION PROGRESS")
         logger.info("=" * 80)
         
-        # Test 22: Video Generation Progress Monitoring (as requested in review)
+        # Test 23: Video Generation Progress Monitoring (as requested in review)
         result = await tester.test_video_generation_progress_monitoring()
         test_results.append(("Video Generation Progress Monitoring", result))
         
