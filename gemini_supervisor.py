@@ -672,7 +672,7 @@ Always provide detailed, actionable feedback and maintain high quality standards
             response = await self.chat.send_message(user_message)
             
             try:
-                validation = json.loads(response)
+                validation = self._extract_json_from_response(response)
                 
                 # Store quality history
                 self.production_context["quality_history"].append({
@@ -685,8 +685,8 @@ Always provide detailed, actionable feedback and maintain high quality standards
                 logger.info(f"Video validation completed: {validation.get('approval_status', 'unknown')} (score: {validation.get('validation_score', 0.0)})")
                 return validation
                 
-            except json.JSONDecodeError:
-                logger.error("Failed to parse validation JSON")
+            except Exception as e:
+                logger.error(f"Failed to parse validation JSON: {str(e)}")
                 return self._create_fallback_validation()
                 
         except Exception as e:
