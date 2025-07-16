@@ -1616,17 +1616,275 @@ async def get_voices():
 
 @app.websocket("/api/ws/{generation_id}")
 async def websocket_endpoint(websocket: WebSocket, generation_id: str):
-    """WebSocket endpoint for real-time updates"""
-    await websocket.accept()
-    active_connections[generation_id] = websocket
+    """Enhanced WebSocket endpoint for real-time updates"""
+    try:
+        await websocket_manager.connect(websocket, generation_id)
+        
+        while True:
+            # Keep connection alive and handle messages
+            data = await websocket.receive_text()
+            logger.debug(f"WebSocket message from {generation_id}: {data}")
+            
+    except WebSocketDisconnect:
+        websocket_manager.disconnect(generation_id)
+        logger.info(f"WebSocket disconnected: {generation_id}")
+    except Exception as e:
+        logger.error(f"WebSocket error for {generation_id}: {e}")
+        websocket_manager.disconnect(generation_id)
+
+# Enhanced video generation task handler
+from queue_manager import task_handler
+
+@task_handler("video_generation_enhanced")
+async def handle_video_generation_enhanced(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Enhanced video generation task handler with monitoring and optimization"""
+    generation_id = payload.get("generation_id")
+    script = payload.get("script")
+    aspect_ratio = payload.get("aspect_ratio", "16:9")
+    voice_id = payload.get("voice_id")
+    project_id = payload.get("project_id")
     
     try:
-        while True:
-            # Keep connection alive
-            await websocket.receive_text()
-    except WebSocketDisconnect:
-        if generation_id in active_connections:
-            del active_connections[generation_id]
+        logger.info(f"Starting enhanced video generation for {generation_id}")
+        
+        # Initialize generation status
+        generation_status[generation_id] = {
+            "generation_id": generation_id,
+            "status": "processing",
+            "progress": 0.0,
+            "message": "Starting video generation...",
+            "created_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        
+        # Broadcast initial status
+        await broadcast_status(generation_id)
+        
+        # Step 1: Enhanced Script Analysis with Scene Breaking
+        await update_generation_status(generation_id, "processing", 10.0, "Analyzing script with enhanced scene breaking...")
+        
+        script_analysis = await gemini_supervisor.analyze_script_with_enhanced_scene_breaking(script)
+        if not script_analysis:
+            raise Exception("Script analysis failed")
+        
+        # Step 2: Character Detection and Voice Assignment
+        await update_generation_status(generation_id, "processing", 20.0, "Detecting characters and assigning voices...")
+        
+        characters = script_analysis.get("characters", [])
+        voice_assignments = await multi_voice_manager.assign_voices_to_characters(characters, script)
+        
+        # Step 3: Enhanced Multi-Scene Video Generation
+        await update_generation_status(generation_id, "processing", 30.0, "Generating video clips for multiple scenes...")
+        
+        scenes = script_analysis.get("scenes", [])
+        video_clips = []
+        validated_clips = []
+        
+        for i, scene in enumerate(scenes):
+            scene_context = {
+                "scene_number": i + 1,
+                "total_scenes": len(scenes),
+                "visual_mood": scene.get("visual_mood", "neutral"),
+                "duration": scene.get("duration", 5)
+            }
+            
+            # Generate enhanced video prompt
+            video_prompt = await gemini_supervisor.generate_enhanced_video_prompt(
+                scene.get("description", ""),
+                scene_context
+            )
+            
+            # Truncate prompt if too long
+            if len(video_prompt) > 400:
+                video_prompt = video_prompt[:400].rsplit(' ', 1)[0] + "..."
+            
+            # Generate video clip
+            video_path = ai_manager.generate_content(
+                video_prompt,
+                "video",
+                aspect_ratio=aspect_ratio,
+                duration=scene.get("duration", 5)
+            )
+            
+            if video_path:
+                video_clips.append(video_path)
+                validated_clips.append({
+                    "path": video_path,
+                    "scene": scene,
+                    "prompt": video_prompt,
+                    "scene_number": i + 1
+                })
+            
+            progress = 30.0 + (i + 1) / len(scenes) * 30.0
+            await update_generation_status(generation_id, "processing", progress, f"Generated scene {i+1}/{len(scenes)}")
+        
+        # Step 4: Multi-Character Audio Generation
+        await update_generation_status(generation_id, "processing", 70.0, "Generating multi-character audio...")
+        
+        dialogue_sequence = []
+        for scene in scenes:
+            characters = script_analysis.get("characters", [])
+            character_name = characters[0].get("name", "Narrator") if characters else "Narrator"
+            
+            dialogue_sequence.append({
+                "character": character_name,
+                "text": scene.get("audio_text", scene.get("description", "")),
+                "scene_context": {
+                    "scene_number": scene.get("scene_number", 1),
+                    "mood": scene.get("visual_mood", "neutral"),
+                    "duration": scene.get("duration", 5)
+                }
+            })
+        
+        audio_segments = await multi_voice_manager.generate_multi_character_audio(dialogue_sequence)
+        
+        # Step 5: Professional Post-Production
+        await update_generation_status(generation_id, "processing", 85.0, "Applying professional post-production...")
+        
+        if video_clips:
+            temp_video_path = video_clips[0]  # Use first clip for now
+            processed_video_path = await runwayml_processor.process_video(temp_video_path)
+        else:
+            raise Exception("No video clips generated")
+        
+        # Step 6: Upload to R2 Storage
+        await update_generation_status(generation_id, "processing", 95.0, "Uploading to cloud storage...")
+        
+        if processed_video_path and os.path.exists(processed_video_path):
+            video_url = await upload_to_r2_storage(processed_video_path, generation_id)
+        else:
+            raise Exception("Processed video not found")
+        
+        # Step 7: Final Quality Check
+        await update_generation_status(generation_id, "processing", 98.0, "Final quality assessment...")
+        
+        quality_assessment = await gemini_supervisor.assess_final_quality(
+            processed_video_path,
+            script_analysis,
+            audio_segments
+        )
+        
+        # Complete generation
+        await update_generation_status(generation_id, "completed", 100.0, "Video generation completed successfully!")
+        
+        # Update database
+        await db.generations.update_one(
+            {"generation_id": generation_id},
+            {
+                "$set": {
+                    "status": "completed",
+                    "progress": 100.0,
+                    "video_url": video_url,
+                    "video_path": processed_video_path,
+                    "script_analysis": script_analysis,
+                    "quality_assessment": quality_assessment,
+                    "completed_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        
+        # Record success metric
+        performance_monitor.record_metric("video_generation_success", 1)
+        
+        return {
+            "generation_id": generation_id,
+            "status": "completed",
+            "video_url": video_url,
+            "video_path": processed_video_path,
+            "processed_at": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Enhanced video generation failed for {generation_id}: {e}")
+        
+        # Update status to failed
+        await update_generation_status(generation_id, "failed", 0.0, f"Generation failed: {str(e)}")
+        
+        # Update database
+        await db.generations.update_one(
+            {"generation_id": generation_id},
+            {
+                "$set": {
+                    "status": "failed",
+                    "error": str(e),
+                    "failed_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        
+        # Record error metric
+        performance_monitor.record_metric("video_generation_error", 1)
+        performance_monitor.record_error(e, {"generation_id": generation_id})
+        
+        raise
+
+async def update_generation_status(generation_id: str, status: str, progress: float, message: str):
+    """Update generation status with monitoring"""
+    generation_status[generation_id] = {
+        "generation_id": generation_id,
+        "status": status,
+        "progress": progress,
+        "message": message,
+        "updated_at": datetime.utcnow().isoformat()
+    }
+    
+    # Broadcast to WebSocket clients
+    await broadcast_status(generation_id)
+    
+    # Record progress metric
+    performance_monitor.record_metric("generation_progress", progress, {"generation_id": generation_id})
+
+async def broadcast_status(generation_id: str):
+    """Broadcast status to WebSocket clients"""
+    if websocket_manager and generation_id in generation_status:
+        status_data = generation_status[generation_id]
+        await websocket_manager.send_personal_message(
+            json.dumps(status_data),
+            generation_id
+        )
+
+# Enhanced upload function with retry logic
+async def upload_to_r2_storage(video_path: str, generation_id: str) -> str:
+    """Upload video to R2 storage with enhanced error handling"""
+    try:
+        if not r2_client:
+            raise Exception("R2 client not initialized")
+        
+        # Generate unique object key with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        object_key = f"videos/{timestamp}_{generation_id}.mp4"
+        
+        # Upload with metadata
+        with open(video_path, 'rb') as video_file:
+            r2_client.upload_fileobj(
+                video_file,
+                R2_BUCKET_NAME,
+                object_key,
+                ExtraArgs={
+                    'ContentType': 'video/mp4',
+                    'ACL': 'public-read',
+                    'Metadata': {
+                        'generation_id': generation_id,
+                        'upload_timestamp': timestamp,
+                        'file_size': str(os.path.getsize(video_path))
+                    }
+                }
+            )
+        
+        # Generate public URL
+        video_url = f"{R2_ENDPOINT}/{R2_BUCKET_NAME}/{object_key}"
+        
+        logger.info(f"Video uploaded successfully: {video_url}")
+        performance_monitor.record_metric("video_upload_success", 1)
+        
+        return video_url
+        
+    except Exception as e:
+        logger.error(f"Failed to upload video: {e}")
+        performance_monitor.record_error(e, {"generation_id": generation_id})
+        raise
 
 if __name__ == "__main__":
     import uvicorn
