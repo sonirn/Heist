@@ -836,6 +836,11 @@ Always provide detailed, actionable feedback and maintain high quality standards
                 logger.error(f"Final video file not found: {final_video_path}")
                 return self._create_fallback_final_assessment()
             
+            # Check if chat session is available
+            if not hasattr(self, 'chat') or not self.chat:
+                logger.error("Chat session not initialized, using fallback assessment")
+                return self._create_fallback_final_assessment()
+            
             # Create file content for Gemini
             video_file = FileContentWithMimeType(
                 file_path=final_video_path,
