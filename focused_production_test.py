@@ -343,7 +343,7 @@ async def main():
     """Main test execution"""
     # Get backend URL from environment
     import os
-    backend_url = os.getenv("REACT_APP_BACKEND_URL", "https://084030f2-9d14-4316-bd68-04b50bcb319d.preview.emergentagent.com")
+    backend_url = os.getenv("REACT_APP_BACKEND_URL", "https://d28cdeca-dff7-4f72-a7e5-53a8cf43f6d9.preview.emergentagent.com")
     
     logger.info(f"🎯 Testing backend at: {backend_url}")
     
