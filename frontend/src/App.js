@@ -185,36 +185,55 @@ function App() {
   };
 
   const connectWebSocket = () => {
-    if (wsRef.current) {
-      wsRef.current.close();
-    }
-
-    const wsUrl = `${BACKEND_URL.replace('http', 'ws')}/api/ws/${generationId}`;
-    wsRef.current = new WebSocket(wsUrl);
-
-    wsRef.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      setProgress(data.progress || 0);
-      setProgressMessage(data.message || '');
-      setGenerationStatus(data.status || '');
-      
-      if (data.status === 'completed' && data.video_url) {
-        setVideoUrl(data.video_url);
-        setIsGenerating(false);
-        setCurrentStep('result');
-      } else if (data.status === 'failed') {
-        setError(data.message || 'Generation failed');
-        setIsGenerating(false);
+    return new Promise((resolve, reject) => {
+      if (wsRef.current) {
+        wsRef.current.close();
       }
-    };
 
-    wsRef.current.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
+      const wsUrl = `${BACKEND_URL.replace('http', 'ws')}/api/ws/${generationId}`;
+      console.log('Attempting WebSocket connection to:', wsUrl);
+      wsRef.current = new WebSocket(wsUrl);
 
-    wsRef.current.onclose = () => {
-      console.log('WebSocket connection closed');
-    };
+      const timeout = setTimeout(() => {
+        reject(new Error('WebSocket connection timeout'));
+      }, 5000); // 5 second timeout
+
+      wsRef.current.onopen = () => {
+        clearTimeout(timeout);
+        console.log('WebSocket connection established');
+        resolve();
+      };
+
+      wsRef.current.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          setProgress(data.progress || 0);
+          setProgressMessage(data.message || '');
+          setGenerationStatus(data.status || '');
+          
+          if (data.status === 'completed' && data.video_url) {
+            setVideoUrl(data.video_url);
+            setIsGenerating(false);
+            setCurrentStep('result');
+          } else if (data.status === 'failed') {
+            setError(data.message || 'Generation failed');
+            setIsGenerating(false);
+          }
+        } catch (e) {
+          console.error('WebSocket data parsing error:', e);
+        }
+      };
+
+      wsRef.current.onerror = (error) => {
+        clearTimeout(timeout);
+        console.error('WebSocket error:', error);
+        reject(error);
+      };
+
+      wsRef.current.onclose = () => {
+        console.log('WebSocket connection closed');
+      };
+    });
   };
 
   const handleScriptSubmit = async () => {
