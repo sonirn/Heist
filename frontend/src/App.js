@@ -25,16 +25,19 @@ function App() {
     loadVoices();
   }, []);
 
-  // WebSocket connection for real-time updates
+  // Real-time updates using SSE (Server-Sent Events) with WebSocket fallback
   useEffect(() => {
     if (generationId && isGenerating) {
-      connectWebSocket();
-      // Also start polling as fallback
+      connectSSE();
+      // Also start polling as final fallback
       startPolling();
     }
     return () => {
       if (wsRef.current) {
         wsRef.current.close();
+      }
+      if (sseRef.current) {
+        sseRef.current.close();
       }
       stopPolling();
     };
