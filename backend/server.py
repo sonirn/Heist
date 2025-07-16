@@ -72,6 +72,7 @@ def get_gemini_supervisor(api_keys):
     return GeminiSupervisor(api_keys)
 
 # Configure logging for production
+os.makedirs('/var/log/app', exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
