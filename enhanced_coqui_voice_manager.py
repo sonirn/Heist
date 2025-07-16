@@ -146,7 +146,7 @@ class EnhancedCoquiVoiceManager:
         # Available Hindi voices (at least 6 as requested)
         self.available_hindi_voices = [
             {
-                "voice_id": "hindi_narrator",
+                "voice_id": "coqui_hindi_narrator",
                 "name": "Hindi Narrator (पुरुष कथावाचक)",
                 "category": "hindi_narrator",
                 "language": "hi",
@@ -155,7 +155,7 @@ class EnhancedCoquiVoiceManager:
                 "model": "tts_models/hi/male/tacotron2-DDC"
             },
             {
-                "voice_id": "hindi_protagonist_male",
+                "voice_id": "coqui_hindi_protagonist_male",
                 "name": "Hindi Male Hero (पुरुष नायक)",
                 "category": "hindi_protagonist_male",
                 "language": "hi",
@@ -164,7 +164,7 @@ class EnhancedCoquiVoiceManager:
                 "model": "tts_models/hi/male/tacotron2-DDC"
             },
             {
-                "voice_id": "hindi_protagonist_female",
+                "voice_id": "coqui_hindi_protagonist_female",
                 "name": "Hindi Female Hero (महिला नायिका)",
                 "category": "hindi_protagonist_female",
                 "language": "hi",
@@ -173,7 +173,7 @@ class EnhancedCoquiVoiceManager:
                 "model": "tts_models/hi/female/tacotron2-DDC"
             },
             {
-                "voice_id": "hindi_antagonist",
+                "voice_id": "coqui_hindi_antagonist",
                 "name": "Hindi Villain (खलनायक)",
                 "category": "hindi_antagonist",
                 "language": "hi",
@@ -182,7 +182,7 @@ class EnhancedCoquiVoiceManager:
                 "model": "tts_models/hi/male/tacotron2-DDC"
             },
             {
-                "voice_id": "hindi_child",
+                "voice_id": "coqui_hindi_child",
                 "name": "Hindi Child (बच्चा)",
                 "category": "hindi_child",
                 "language": "hi",
@@ -191,7 +191,7 @@ class EnhancedCoquiVoiceManager:
                 "model": "tts_models/hi/female/tacotron2-DDC"
             },
             {
-                "voice_id": "hindi_elderly",
+                "voice_id": "coqui_hindi_elderly",
                 "name": "Hindi Elder (बुजुर्ग)",
                 "category": "hindi_elderly",
                 "language": "hi",
@@ -200,7 +200,7 @@ class EnhancedCoquiVoiceManager:
                 "model": "tts_models/hi/male/tacotron2-DDC"
             },
             {
-                "voice_id": "hindi_female_character",
+                "voice_id": "coqui_hindi_female_character",
                 "name": "Hindi Female Character (महिला पात्र)",
                 "category": "hindi_female_character",
                 "language": "hi",
@@ -209,7 +209,7 @@ class EnhancedCoquiVoiceManager:
                 "model": "tts_models/hi/female/tacotron2-DDC"
             },
             {
-                "voice_id": "hindi_male_character",
+                "voice_id": "coqui_hindi_male_character",
                 "name": "Hindi Male Character (पुरुष पात्र)",
                 "category": "hindi_male_character",
                 "language": "hi",
