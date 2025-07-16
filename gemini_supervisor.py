@@ -971,7 +971,8 @@ Always provide detailed, actionable feedback and maintain high quality standards
             # Use the supervisor's LLM chat functionality
             chat = LlmChat(
                 api_key=self.api_keys[0],
-                session_id=f"video_prompt_{int(time.time())}"
+                session_id=f"video_prompt_{int(time.time())}",
+                system_message="You are a professional video production assistant specializing in creating detailed video prompts for AI video generation."
             ).with_model("gemini", "gemini-2.5-flash-002")
             
             response = await chat.send_message(prompt)
