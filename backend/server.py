@@ -1644,9 +1644,16 @@ async def websocket_endpoint(websocket: WebSocket, generation_id: str):
         await websocket.accept()
         logger.info(f"WebSocket connection accepted for {generation_id}")
         
+        # Send initial status
+        await websocket.send_text(json.dumps({
+            "type": "connected",
+            "generation_id": generation_id,
+            "timestamp": datetime.utcnow().isoformat()
+        }))
+        
         # Initialize connection with manager
         if websocket_manager:
-            await websocket_manager.connect(websocket, generation_id)
+            websocket_manager.active_connections[generation_id] = websocket
         
         while True:
             try:
@@ -1655,7 +1662,11 @@ async def websocket_endpoint(websocket: WebSocket, generation_id: str):
                 logger.debug(f"WebSocket message from {generation_id}: {data}")
                 
                 # Echo back the message (for testing)
-                await websocket.send_text(f"Echo: {data}")
+                await websocket.send_text(json.dumps({
+                    "type": "echo",
+                    "message": data,
+                    "timestamp": datetime.utcnow().isoformat()
+                }))
                 
             except WebSocketDisconnect:
                 logger.info(f"WebSocket disconnected: {generation_id}")
@@ -1664,8 +1675,8 @@ async def websocket_endpoint(websocket: WebSocket, generation_id: str):
     except Exception as e:
         logger.error(f"WebSocket error for {generation_id}: {e}")
     finally:
-        if websocket_manager:
-            websocket_manager.disconnect(generation_id)
+        if websocket_manager and generation_id in websocket_manager.active_connections:
+            del websocket_manager.active_connections[generation_id]
 
 @app.websocket("/api/ws/test")
 async def test_websocket_endpoint(websocket: WebSocket):
