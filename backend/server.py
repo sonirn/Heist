@@ -1398,7 +1398,7 @@ async def health_check():
         return {
             "status": health_status["status"],
             "timestamp": datetime.utcnow().isoformat(),
-            "version": "2.0-production",
+            "version": "2.0-enhanced",
             "environment": os.getenv("ENVIRONMENT", "development"),
             "ai_models": ai_models_status,
             "enhanced_components": enhanced_components,
