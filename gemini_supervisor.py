@@ -578,12 +578,12 @@ Always provide detailed, actionable feedback and maintain high quality standards
             response = await self.chat.send_message(UserMessage(text=prompt))
             
             try:
-                assignments = json.loads(response)
+                assignments = self._extract_json_from_response(response)
                 logger.info(f"Character voice assignments completed: {len(assignments.get('voice_assignments', {}))} assignments")
                 return assignments
                 
-            except json.JSONDecodeError:
-                logger.error("Failed to parse voice assignments JSON")
+            except Exception as e:
+                logger.error(f"Failed to parse voice assignments JSON: {str(e)}")
                 return self._create_fallback_voice_assignments(characters, available_voices)
                 
         except Exception as e:
