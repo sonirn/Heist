@@ -235,20 +235,75 @@ class QueueManager:
                 logger.error(f"Task {task.id} failed permanently after {task.max_retries} retries")
     
     async def get_queue_stats(self) -> Dict[str, Any]:
-        """Get queue statistics"""
+        """Get comprehensive queue statistics with enhanced monitoring"""
         queue_sizes = {}
         for priority, queue in self.queues.items():
             queue_sizes[priority.name] = queue.qsize()
         
-        active_tasks = len([t for t in self.tasks.values() 
-                          if t.status == TaskStatus.PROCESSING])
+        # Task status analysis
+        task_status_counts = {}
+        for status in TaskStatus:
+            task_status_counts[status.value] = len([
+                t for t in self.tasks.values() if t.status == status
+            ])
+        
+        active_tasks = task_status_counts.get("processing", 0)
+        
+        # Calculate average processing time
+        completed_tasks = [t for t in self.tasks.values() 
+                          if t.status == TaskStatus.COMPLETED and t.started_at and t.completed_at]
+        
+        avg_processing_time = 0
+        if completed_tasks:
+            total_time = sum(
+                (t.completed_at - t.started_at).total_seconds() 
+                for t in completed_tasks
+            )
+            avg_processing_time = total_time / len(completed_tasks)
+        
+        # Failed task analysis
+        failed_tasks = [t for t in self.tasks.values() if t.status == TaskStatus.FAILED]
+        retry_tasks = [t for t in self.tasks.values() if t.status == TaskStatus.RETRY]
+        
+        # Worker efficiency
+        worker_efficiency = {
+            "total_workers": len(self.workers),
+            "active_workers": len([w for w in self.workers if not w.done()]),
+            "worker_utilization": round(active_tasks / max(len(self.workers), 1) * 100, 2)
+        }
+        
+        # Queue health metrics
+        total_queued = sum(queue_sizes.values())
+        queue_health = {
+            "total_queued_tasks": total_queued,
+            "queue_backlog": total_queued > 10,  # Alert if more than 10 queued
+            "critical_tasks": queue_sizes.get("CRITICAL", 0),
+            "high_priority_tasks": queue_sizes.get("HIGH", 0)
+        }
         
         return {
             "queue_sizes": queue_sizes,
             "active_tasks": active_tasks,
             "total_workers": len(self.workers),
             "is_running": self.is_running,
-            "stats": self.stats
+            "stats": self.stats,
+            "task_monitoring": {
+                "task_status_counts": task_status_counts,
+                "total_tasks": len(self.tasks),
+                "average_processing_time_seconds": round(avg_processing_time, 2),
+                "failed_task_count": len(failed_tasks),
+                "retry_task_count": len(retry_tasks),
+                "success_rate": round(
+                    (task_status_counts.get("completed", 0) / max(len(self.tasks), 1)) * 100, 2
+                )
+            },
+            "worker_efficiency": worker_efficiency,
+            "queue_health": queue_health,
+            "performance_indicators": {
+                "high_backlog_alert": total_queued > 10,
+                "worker_overload_alert": worker_efficiency["worker_utilization"] > 80,
+                "high_failure_rate_alert": len(failed_tasks) > len(completed_tasks) * 0.1
+            }
         }
     
     async def cleanup_old_tasks(self, max_age_hours: int = 24):
