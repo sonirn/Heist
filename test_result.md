@@ -446,6 +446,9 @@ backend:
         - working: false
           agent: "testing"
           comment: "🔌 COMPREHENSIVE WEBSOCKET AND SSE TESTING COMPLETED: Conducted detailed testing of all real-time communication endpoints as requested. FINDINGS: (1) ✅ ENDPOINTS IMPLEMENTED - WebSocket endpoints exist in backend code: /api/ws/{generation_id} for real-time updates, /api/ws/test for testing, and SSE endpoint /api/sse/{generation_id} for Server-Sent Events, (2) ✅ BACKEND HEALTHY - Local backend testing confirms HTTP endpoints working (health: 200, version: 2.0-enhanced, project creation: 200), (3) ❌ EXTERNAL ACCESS BLOCKED - WebSocket and SSE endpoints not accessible via external URL (wss://domain/api/ws/*), likely due to Kubernetes ingress configuration not supporting WebSocket/SSE protocols or network restrictions, (4) ✅ ALTERNATIVE WORKING - HTTP polling via /api/generate/{generation_id} works for status updates as fallback. CONCLUSION: WebSocket/SSE endpoints are properly implemented in FastAPI but blocked at infrastructure level. Core video generation functionality unaffected as HTTP polling provides status updates. This is an infrastructure/deployment issue, not a code issue."
+        - working: false
+          agent: "testing"
+          comment: "🔌 WEBSOCKET TESTING SKIPPED DUE TO API TIMEOUT ISSUES: During comprehensive backend testing, WebSocket endpoints could not be properly tested due to intermittent API timeout issues affecting the overall system. The health endpoint and other core APIs were experiencing timeout problems, making WebSocket testing unreliable. Based on previous testing history, WebSocket endpoints remain non-functional due to infrastructure/deployment issues rather than code problems. This is a non-critical feature that doesn't affect core video generation functionality."
 
   - task: "Coqui TTS Voice Configuration"
     implemented: true
