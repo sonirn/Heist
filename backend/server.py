@@ -545,7 +545,28 @@ class GeminiManager:
         response = await self.smart_manager.execute_task("script_analysis", prompt)
         
         try:
-            analysis = json.loads(response)
+            # Clean the response to ensure proper JSON parsing
+            response_clean = response.strip()
+            
+            # Remove any markdown code blocks if present
+            if response_clean.startswith("```json"):
+                response_clean = response_clean[7:]  # Remove ```json
+            if response_clean.startswith("```"):
+                response_clean = response_clean[3:]  # Remove ```
+            if response_clean.endswith("```"):
+                response_clean = response_clean[:-3]  # Remove trailing ```
+            
+            # Find JSON object boundaries
+            start_idx = response_clean.find('{')
+            end_idx = response_clean.rfind('}') + 1
+            
+            if start_idx != -1 and end_idx > start_idx:
+                json_str = response_clean[start_idx:end_idx]
+                analysis = json.loads(json_str)
+            else:
+                # If no JSON found, try parsing the whole response
+                analysis = json.loads(response_clean)
+                
             scenes = analysis.get("scenes", [])
             
             # Ensure we have multiple scenes
@@ -555,8 +576,9 @@ class GeminiManager:
             
             logger.info(f"Script analysis completed with {len(analysis.get('scenes', []))} scenes")
             return analysis
-        except json.JSONDecodeError:
-            logger.error("Failed to parse JSON from script analysis")
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse JSON from script analysis: {e}")
+            logger.error(f"Raw response: {response[:500]}...")  # Log first 500 chars of response
             return self._create_enhanced_fallback_analysis(script)
     
     def _enhance_scene_breakdown(self, script: str, analysis: Dict) -> Dict:
