@@ -11,7 +11,7 @@ async def check_health():
     try:
         timeout = aiohttp.ClientTimeout(total=10)
         async with aiohttp.ClientSession(timeout=timeout) as session:
-            url = "https://e998c079-1531-47a1-827e-bbe508daab89.preview.emergentagent.com/api/health"
+            url = "https://084030f2-9d14-4316-bd68-04b50bcb319d.preview.emergentagent.com/api/health"
             print(f"Testing: {url}")
             
             async with session.get(url) as response:
