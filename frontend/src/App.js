@@ -76,11 +76,12 @@ function App() {
     stopPolling();
   };
 
-  const startPolling = () => {
+  const startPolling = (interval = 1000) => {
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
     }
     
+    console.log(`Starting polling with ${interval}ms interval`);
     pollingIntervalRef.current = setInterval(async () => {
       if (generationId && isGenerating) {
         try {
@@ -98,6 +99,16 @@ function App() {
               stopPolling();
             } else if (data.status === 'failed') {
               setError(data.message || 'Generation failed');
+              setIsGenerating(false);
+              stopPolling();
+            }
+          }
+        } catch (error) {
+          console.error('Polling error:', error);
+          // Don't stop polling on error, just log it
+        }
+      }
+    }, interval);
               setIsGenerating(false);
               stopPolling();
             }
