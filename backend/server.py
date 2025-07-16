@@ -1515,8 +1515,9 @@ async def get_project(project_id: str):
         raise HTTPException(status_code=500, detail="Failed to get project")
 
 @app.post("/api/generate", response_model=GenerationResponse)
+@monitor_endpoint("start_generation")
 async def start_generation(request: GenerationRequest, background_tasks: BackgroundTasks):
-    """Start video generation"""
+    """Start video generation with queue processing"""
     try:
         # Check if project exists
         project = await db.projects.find_one({"project_id": request.project_id})
@@ -1529,37 +1530,53 @@ async def start_generation(request: GenerationRequest, background_tasks: Backgro
             "project_id": request.project_id,
             "status": "queued",
             "progress": 0.0,
-            "created_at": datetime.utcnow()
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
         }
         
         await db.generations.insert_one(generation_data)
         
-        # Start background task
-        background_tasks.add_task(
-            process_video_generation,
-            generation_id,
-            {
+        # Add task to queue with high priority
+        task_id = await queue_manager.add_task(
+            name=f"video_generation_{generation_id}",
+            handler="video_generation_enhanced",
+            payload={
+                "generation_id": generation_id,
                 "script": request.script,
                 "aspect_ratio": request.aspect_ratio,
-                "voice_id": request.voice_id
-            }
+                "voice_id": request.voice_id,
+                "project_id": request.project_id
+            },
+            priority=TaskPriority.HIGH
         )
+        
+        # Update generation with task ID
+        await db.generations.update_one(
+            {"generation_id": generation_id},
+            {"$set": {"task_id": task_id, "updated_at": datetime.utcnow()}}
+        )
+        
+        # Record metric
+        performance_monitor.record_metric("generation_started", 1)
         
         return GenerationResponse(
             generation_id=generation_id,
             status="queued",
             progress=0.0,
-            message="Generation queued"
+            message="Generation queued for processing"
         )
+        
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Generation start failed: {str(e)}")
+        performance_monitor.record_error(e)
         raise HTTPException(status_code=500, detail="Failed to start generation")
 
 @app.get("/api/generate/{generation_id}")
+@monitor_endpoint("get_generation_status")
 async def get_generation_status(generation_id: str):
-    """Get generation status"""
+    """Get generation status with task monitoring"""
     try:
         # Check memory first
         if generation_id in generation_status:
@@ -1570,12 +1587,21 @@ async def get_generation_status(generation_id: str):
         if not generation:
             raise HTTPException(status_code=404, detail="Generation not found")
         
+        # Get task status if available
+        task_id = generation.get("task_id")
+        if task_id:
+            task_status = await queue_manager.get_task_status(task_id)
+            if task_status:
+                generation["task_status"] = task_status
+        
         generation.pop('_id', None)
         return generation
+        
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Failed to get generation status: {str(e)}")
+        performance_monitor.record_error(e)
         raise HTTPException(status_code=500, detail="Failed to get generation status")
 
 @app.get("/api/voices", response_model=List[VoiceResponse])
