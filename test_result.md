@@ -494,17 +494,16 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Enhanced Coqui Voice Manager Method Signature Fix"
-    - "Gemini Script Analysis JSON Parsing Fix"
     - "Production Health Check System Enhancement"
     - "Cache Management System Implementation"
     - "File Management System Implementation"
+    - "Queue System Metrics Enhancement"
+    - "Enhanced WebSocket Communication"
+    - "Production Mode Configuration"
   stuck_tasks:
-    - "GeminiSupervisor Method Fix - analyze_script_with_enhanced_scene_breaking"
-    - "Enhanced Coqui Voice Manager Method Signature Fix"
-    - "Gemini Script Analysis JSON Parsing Fix"
+    - "Minimax API Status Handling" 
   test_all: false
-  test_priority: "critical_issues_blocking_video_generation"
+  test_priority: "critical_issues_fixed_testing_production_features"
 
 agent_communication:
     - agent: "main"
