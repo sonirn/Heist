@@ -969,11 +969,12 @@ Always provide detailed, actionable feedback and maintain high quality standards
         
         try:
             # Use the supervisor's LLM chat functionality
-            response = await LlmChat(
-                provider="gemini",
-                model="gemini-2.5-flash-002",
-                api_key=self.api_keys[0]
-            ).send_message(prompt)
+            chat = LlmChat(
+                api_key=self.api_keys[0],
+                session_id=f"video_prompt_{int(time.time())}"
+            ).with_model("gemini", "gemini-2.5-flash-002")
+            
+            response = await chat.send_message(prompt)
             
             # Clean and truncate the response
             video_prompt = response.strip()
