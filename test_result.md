@@ -560,13 +560,13 @@ metadata:
 
 test_plan:
   current_focus:
-    - "WebSocket Communication Fix"
+    - "Minimax API Balance and Video Generation Completion"
+    - "Gemini Supervisor LlmChat Provider Argument Fix"
   stuck_tasks:
     - "WebSocket Communication Fix"
+    - "Minimax API Balance and Video Generation Completion"
   test_all: false
-  test_priority: "websocket_endpoints_only" 
-  test_all: false
-  test_priority: "critical_issues_fixed_testing_production_features"
+  test_priority: "critical_api_fixes_needed"
 
 agent_communication:
     - agent: "main"
