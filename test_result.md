@@ -431,6 +431,9 @@ backend:
         - working: false
           agent: "testing"
           comment: "WEBSOCKET ENDPOINT HTTP 404: WebSocket endpoint returns HTTP 404 error when accessed. The endpoint /api/ws/{generation_id} is not properly configured or accessible. This prevents real-time status updates during video generation. While this is a non-critical feature for core functionality, it affects user experience during video generation monitoring."
+        - working: false
+          agent: "testing"
+          comment: "❌ WEBSOCKET COMMUNICATION STILL NOT RESOLVED: Focused testing confirmed that the WebSocket endpoint at /api/ws/{generation_id} is still returning HTTP 404 errors and cannot establish connections. The endpoint is not properly configured or accessible, preventing real-time status updates during video generation. This issue remains unresolved and needs to be fixed for 100% functionality."
 
   - task: "Coqui TTS Voice Configuration"
     implemented: true
