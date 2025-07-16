@@ -1938,10 +1938,20 @@ async def handle_video_generation_enhanced(payload: Dict[str, Any]) -> Dict[str,
         # Step 5: Professional Post-Production
         await update_generation_status(generation_id, "processing", 85.0, "Applying professional post-production...")
         
+        processed_video_path = None
         if video_clips:
             temp_video_path = video_clips[0]  # Use first clip for now
-            result = await runwayml_processor.comprehensive_post_production(temp_video_path, {})
-            processed_video_path = result.get("final_video") if result.get("success") else None
+            try:
+                result = await runwayml_processor.comprehensive_post_production(temp_video_path, {})
+                processed_video_path = result.get("final_video") if result.get("success") else None
+                
+                # If post-production failed, use the original video
+                if not processed_video_path or not os.path.exists(processed_video_path):
+                    logger.warning("Post-production failed or file not found, using original video")
+                    processed_video_path = temp_video_path
+            except Exception as e:
+                logger.error(f"Post-production failed: {str(e)}, using original video")
+                processed_video_path = temp_video_path
         else:
             raise Exception("No video clips generated")
         
@@ -1968,6 +1978,7 @@ async def handle_video_generation_enhanced(payload: Dict[str, Any]) -> Dict[str,
             
             logger.info(f"Video ready for download: {final_video_path}")
         else:
+            logger.error(f"Processed video not found: {processed_video_path}")
             raise Exception("Processed video not found")
         
         # Step 7: Final Quality Check
