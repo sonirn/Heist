@@ -97,7 +97,7 @@ async def test_elevenlabs_direct():
 
 async def test_backend_voice_integration():
     """Test voice integration through backend"""
-    backend_url = "https://b51ec283-200b-4c5a-8885-425b20225bca.preview.emergentagent.com"
+    backend_url = "https://792faf87-f5fe-4b4a-a932-1f5062d9b08e.preview.emergentagent.com"
     
     logger.info("🔗 Testing Backend Voice Integration")
     logger.info("=" * 60)
