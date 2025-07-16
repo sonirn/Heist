@@ -183,6 +183,150 @@ Always provide detailed, actionable feedback and maintain high quality standards
             logger.error(f"Script analysis failed: {str(e)}")
             return self._create_fallback_analysis(script)
     
+    async def analyze_script_with_enhanced_scene_breaking(self, script: str) -> Dict[str, Any]:
+        """
+        Enhanced script analysis with intelligent scene breaking for improved video generation
+        
+        Args:
+            script: Input script text
+            
+        Returns:
+            Dict containing enhanced analysis with intelligent scene breaking
+        """
+        try:
+            prompt = f"""
+            As a professional video production director, analyze this script and create an enhanced scene breakdown optimized for video generation:
+            
+            SCRIPT:
+            {script}
+            
+            Provide a detailed analysis in JSON format with:
+            
+            1. ENHANCED SCENE BREAKING:
+               - Break script into logical scenes (minimum 2-3 scenes even for short scripts)
+               - Each scene should be 3-8 seconds for optimal video generation
+               - Include visual transitions between scenes
+               - Add camera movement suggestions
+               - Include scene-specific lighting and mood
+               - Ensure narrative flow between scenes
+            
+            2. CHARACTERS WITH ENHANCED TRAITS:
+               - Character name and personality
+               - Voice characteristics (tone, age, gender, emotion, accent)
+               - Role in story and dialogue portions
+               - Character arc and development
+               - Scene-specific character actions
+            
+            3. VISUAL ENHANCEMENT:
+               - Detailed visual description for each scene
+               - Camera angles and movements
+               - Lighting setup and mood
+               - Color palette suggestions
+               - Visual effects and transitions
+            
+            4. PRODUCTION CONTEXT:
+               - Overall narrative theme
+               - Target visual style
+               - Pacing and rhythm
+               - Quality benchmarks
+               - Technical specifications
+            
+            For each scene, provide:
+            {{
+                "scene_number": int,
+                "description": "detailed scene description",
+                "duration": float (3-8 seconds),
+                "visual_elements": {{
+                    "camera_angle": "specific angle",
+                    "movement": "camera movement",
+                    "lighting": "lighting setup",
+                    "mood": "visual mood"
+                }},
+                "characters_in_scene": ["character names"],
+                "dialogue": "scene dialogue",
+                "transition_to_next": "transition description"
+            }}
+            
+            Return ONLY valid JSON format.
+            """
+            
+            response = await self.chat.send_message(UserMessage(text=prompt))
+            
+            # Parse JSON response
+            try:
+                analysis = json.loads(response)
+                
+                # Ensure we have proper scene structure
+                scenes = analysis.get("scenes", [])
+                if not scenes:
+                    # Create fallback scenes if none found
+                    scenes = await self.break_script_into_scenes(script)
+                    analysis["scenes"] = scenes
+                
+                # Ensure minimum scene count
+                if len(scenes) < 2:
+                    additional_scenes = await self.break_script_into_scenes(script)
+                    analysis["scenes"] = additional_scenes
+                
+                # Store enhanced production context
+                self.production_context["script"] = script
+                self.production_context["target_theme"] = analysis.get("production_context", {}).get("theme", "general")
+                self.production_context["characters"] = analysis.get("characters", [])
+                self.production_context["scene_sequence"] = analysis.get("scenes", [])
+                
+                logger.info(f"Enhanced script analysis completed: {len(analysis.get('characters', []))} characters, {len(analysis.get('scenes', []))} scenes")
+                return analysis
+                
+            except json.JSONDecodeError:
+                logger.error("Failed to parse JSON from Gemini response in enhanced analysis")
+                # Return enhanced fallback analysis
+                return await self._create_enhanced_fallback_analysis(script)
+                
+        except Exception as e:
+            logger.error(f"Enhanced script analysis failed: {str(e)}")
+            return await self._create_enhanced_fallback_analysis(script)
+    
+    async def _create_enhanced_fallback_analysis(self, script: str) -> Dict[str, Any]:
+        """Create enhanced fallback analysis with better scene breaking"""
+        try:
+            # Try to use the existing break_script_into_scenes method
+            scenes = await self.break_script_into_scenes(script)
+        except Exception:
+            # Ultimate fallback - create basic scenes
+            scenes = self._create_fallback_scenes(script)
+        
+        return {
+            "characters": [
+                {
+                    "name": "Narrator",
+                    "personality": "neutral",
+                    "voice_characteristics": {
+                        "tone": "professional",
+                        "age": "adult",
+                        "gender": "neutral",
+                        "emotion": "calm",
+                        "accent": "neutral"
+                    },
+                    "role": "narrator",
+                    "dialogue": script,
+                    "scene_actions": "narration"
+                }
+            ],
+            "scenes": scenes,
+            "production_context": {
+                "theme": "general",
+                "visual_style": "realistic",
+                "pacing": "moderate",
+                "quality_benchmarks": ["clarity", "engagement"]
+            },
+            "visual_enhancement": {
+                "camera_style": "professional",
+                "lighting": "natural",
+                "color_palette": "neutral",
+                "transitions": "smooth"
+            }
+        }
+    
     def _create_fallback_analysis(self, script: str) -> Dict[str, Any]:
         """Create fallback analysis when Gemini fails"""
         return {
