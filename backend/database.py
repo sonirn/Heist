@@ -100,7 +100,7 @@ class DatabaseManager:
             logger.info("Database connection closed")
     
     async def get_collection_stats(self) -> Dict[str, Any]:
-        """Get database performance statistics"""
+        """Get database performance statistics with connection pooling metrics"""
         try:
             stats = {}
             collections = ["projects", "videos", "sessions", "analytics"]
@@ -108,6 +108,25 @@ class DatabaseManager:
             for collection_name in collections:
                 collection = self.db[collection_name]
                 stats[collection_name] = await collection.count_documents({})
+            
+            # Add connection pooling metrics
+            connection_pool_stats = {
+                "max_pool_size": self.connection_pool_size,
+                "min_pool_size": 10,
+                "max_idle_time_ms": self.max_idle_time,
+                "server_selection_timeout_ms": self.server_selection_timeout,
+                "connection_status": "connected" if self.client else "disconnected",
+                "database_name": self.db.name if self.db else None,
+                "connection_pool_active": self.client is not None,
+                "pool_configuration": {
+                    "retry_writes": True,
+                    "retry_reads": True,
+                    "connect_timeout_ms": 5000,
+                    "socket_timeout_ms": 10000
+                }
+            }
+            
+            stats["connection_pool"] = connection_pool_stats
             
             return stats
             
