@@ -771,12 +771,12 @@ Always provide detailed, actionable feedback and maintain high quality standards
             response = await self.chat.send_message(UserMessage(text=prompt))
             
             try:
-                editing_plan = json.loads(response)
+                editing_plan = self._extract_json_from_response(response)
                 logger.info(f"Video editing plan created: {len(editing_plan.get('editing_sequence', []))} editing steps")
                 return editing_plan
                 
-            except json.JSONDecodeError:
-                logger.error("Failed to parse editing plan JSON")
+            except Exception as e:
+                logger.error(f"Failed to parse editing plan JSON: {str(e)}")
                 return self._create_fallback_editing_plan(video_clips, scene_sequence)
                 
         except Exception as e:
