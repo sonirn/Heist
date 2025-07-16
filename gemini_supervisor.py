@@ -883,12 +883,12 @@ Always provide detailed, actionable feedback and maintain high quality standards
             response = await self.chat.send_message(user_message)
             
             try:
-                final_assessment = json.loads(response)
+                final_assessment = self._extract_json_from_response(response)
                 logger.info(f"Final quality assessment completed: {final_assessment.get('approval_status', 'unknown')} (score: {final_assessment.get('final_score', 0.0)})")
                 return final_assessment
                 
-            except json.JSONDecodeError:
-                logger.error("Failed to parse final assessment JSON")
+            except Exception as e:
+                logger.error(f"Failed to parse final assessment JSON: {str(e)}")
                 return self._create_fallback_final_assessment()
                 
         except Exception as e:
