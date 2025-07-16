@@ -1977,7 +1977,6 @@ async def handle_video_generation_enhanced(payload: Dict[str, Any]) -> Dict[str,
         quality_assessment = None
         try:
             # Use asyncio.wait_for to add timeout (30 seconds max)
-            import asyncio
             quality_assessment = await asyncio.wait_for(
                 gemini_supervisor.assess_final_quality(
                     processed_video_path,
