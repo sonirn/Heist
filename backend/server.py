@@ -777,30 +777,19 @@ async def upload_to_r2_storage(file_path: str, object_key: str, content_type: st
         return None
 
 async def create_r2_bucket_if_not_exists():
-    """Create R2 bucket if it doesn't exist"""
+    """
+    Ensure server storage directory exists (maintaining R2 function signature)
+    """
     try:
-        if not r2_client:
-            logger.error("R2 client not initialized")
-            return False
-            
-        # Check if bucket exists
-        try:
-            r2_client.head_bucket(Bucket=R2_BUCKET_NAME)
-            logger.info(f"R2 bucket '{R2_BUCKET_NAME}' already exists")
-            return True
-        except ClientError as e:
-            if e.response['Error']['Code'] == '404':
-                # Bucket doesn't exist, create it
-                logger.info(f"Creating R2 bucket: {R2_BUCKET_NAME}")
-                r2_client.create_bucket(Bucket=R2_BUCKET_NAME)
-                logger.info(f"R2 bucket '{R2_BUCKET_NAME}' created successfully")
-                return True
-            else:
-                logger.error(f"Error checking R2 bucket: {str(e)}")
-                return False
-                
+        # Ensure server storage directory exists
+        server_storage_dir = "/tmp/output"
+        os.makedirs(server_storage_dir, exist_ok=True)
+        
+        logger.info(f"Server storage directory ensured: {server_storage_dir}")
+        return True
+        
     except Exception as e:
-        logger.error(f"Failed to create R2 bucket: {str(e)}")
+        logger.error(f"Failed to create server storage directory: {str(e)}")
         return False
 
 async def upload_video_with_retry(video_path: str, generation_id: str, max_retries: int = 3) -> Optional[str]:
