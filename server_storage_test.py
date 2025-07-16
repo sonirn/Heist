@@ -295,14 +295,19 @@ class ServerStorageTester:
         """Test that cleanup is scheduled for video files"""
         test_name = "Cleanup Scheduling"
         try:
-            # This is a basic test - in a real implementation, we'd check if cleanup tasks are scheduled
-            # For now, we'll just verify the cleanup function exists and can be called
-            
             # Check if the cleanup module is available
             try:
+                import sys
+                sys.path.append('/app/backend')
                 from cleanup import schedule_video_cleanup
-                self.log_test_result(test_name, True, "Cleanup scheduling function is available")
-                return True
+                
+                # Test that the function can be imported and is callable
+                if callable(schedule_video_cleanup):
+                    self.log_test_result(test_name, True, "Cleanup scheduling function is available and callable")
+                    return True
+                else:
+                    self.log_test_result(test_name, False, "Cleanup function exists but is not callable")
+                    return False
             except ImportError as e:
                 self.log_test_result(test_name, False, f"Cleanup module not available: {str(e)}")
                 return False
