@@ -2047,39 +2047,27 @@ async def broadcast_status(generation_id: str):
 
 # Enhanced upload function with retry logic
 async def upload_to_r2_storage(video_path: str, generation_id: str) -> str:
-    """Upload video to R2 storage with enhanced error handling"""
+    """Upload video to server storage with enhanced error handling (maintaining R2 function signature)"""
     try:
-        if not r2_client:
-            raise Exception("R2 client not initialized")
+        # Ensure server storage directory exists
+        server_storage_dir = "/tmp/output"
+        os.makedirs(server_storage_dir, exist_ok=True)
         
-        # Generate unique object key with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        object_key = f"videos/{timestamp}_{generation_id}.mp4"
+        # Create final video filename
+        final_filename = f"final_video_{generation_id}.mp4"
+        destination_path = os.path.join(server_storage_dir, final_filename)
         
-        # Upload with metadata
-        with open(video_path, 'rb') as video_file:
-            r2_client.upload_fileobj(
-                video_file,
-                R2_BUCKET_NAME,
-                object_key,
-                ExtraArgs={
-                    'ContentType': 'video/mp4',
-                    'ACL': 'public-read',
-                    'Metadata': {
-                        'generation_id': generation_id,
-                        'upload_timestamp': timestamp,
-                        'file_size': str(os.path.getsize(video_path))
-                    }
-                }
-            )
+        # Copy to server storage
+        import shutil
+        shutil.copy2(video_path, destination_path)
         
-        # Generate public URL
-        video_url = f"{R2_ENDPOINT}/{R2_BUCKET_NAME}/{object_key}"
+        # Schedule cleanup after 24 hours
+        await schedule_video_cleanup(generation_id, destination_path)
         
-        logger.info(f"Video uploaded successfully: {video_url}")
+        logger.info(f"Video uploaded to server storage: {destination_path}")
         performance_monitor.record_metric("video_upload_success", 1)
         
-        return video_url
+        return f"/api/download/{generation_id}"
         
     except Exception as e:
         logger.error(f"Failed to upload video: {e}")
