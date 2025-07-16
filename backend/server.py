@@ -1854,21 +1854,38 @@ async def handle_video_generation_enhanced(payload: Dict[str, Any]) -> Dict[str,
                 video_prompt = video_prompt[:400].rsplit(' ', 1)[0] + "..."
             
             # Generate video clip
-            video_path = ai_manager.generate_content(
+            video_data = ai_manager.generate_content(
                 video_prompt,
                 "video",
                 aspect_ratio=aspect_ratio,
                 duration=scene.get("duration", 5)
             )
             
-            if video_path:
-                video_clips.append(video_path)
-                validated_clips.append({
-                    "path": video_path,
-                    "scene": scene,
-                    "prompt": video_prompt,
-                    "scene_number": i + 1
-                })
+            if video_data:
+                # Save binary video data to temporary file
+                import tempfile
+                import uuid
+                
+                temp_filename = f"scene_{i+1}_{uuid.uuid4().hex[:8]}.mp4"
+                temp_video_path = os.path.join("/tmp", temp_filename)
+                
+                try:
+                    with open(temp_video_path, 'wb') as f:
+                        f.write(video_data)
+                    
+                    video_clips.append(temp_video_path)
+                    validated_clips.append({
+                        "path": temp_video_path,
+                        "scene": scene,
+                        "prompt": video_prompt,
+                        "scene_number": i + 1
+                    })
+                    
+                    logger.info(f"Saved video clip to: {temp_video_path}")
+                    
+                except Exception as e:
+                    logger.error(f"Failed to save video clip: {str(e)}")
+                    continue
             
             progress = 30.0 + (i + 1) / len(scenes) * 30.0
             await update_generation_status(generation_id, "processing", progress, f"Generated scene {i+1}/{len(scenes)}")
