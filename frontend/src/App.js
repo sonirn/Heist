@@ -102,6 +102,48 @@ function App() {
     }
   };
 
+  const connectSSE = () => {
+    if (sseRef.current) {
+      sseRef.current.close();
+    }
+
+    const sseUrl = `${BACKEND_URL}/api/sse/${generationId}`;
+    sseRef.current = new EventSource(sseUrl);
+
+    sseRef.current.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        setProgress(data.progress || 0);
+        setProgressMessage(data.message || '');
+        setGenerationStatus(data.status || '');
+        
+        if (data.status === 'completed' && data.video_url) {
+          setVideoUrl(data.video_url);
+          setIsGenerating(false);
+          setCurrentStep('result');
+        } else if (data.status === 'failed') {
+          setError(data.message || 'Generation failed');
+          setIsGenerating(false);
+        }
+      } catch (e) {
+        console.error('SSE data parsing error:', e);
+      }
+    };
+
+    sseRef.current.onerror = (error) => {
+      console.error('SSE error:', error);
+      // Fallback to WebSocket if SSE fails
+      if (wsRef.current === null) {
+        console.log('SSE failed, falling back to WebSocket');
+        connectWebSocket();
+      }
+    };
+
+    sseRef.current.onopen = () => {
+      console.log('SSE connection established');
+    };
+  };
+
   const connectWebSocket = () => {
     if (wsRef.current) {
       wsRef.current.close();
