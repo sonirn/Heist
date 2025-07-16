@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Script-to-Video Backend Server
-Comprehensive FastAPI backend with AI model integrations
+Script-to-Video Backend Server - Production Ready
+Comprehensive FastAPI backend with AI model integrations, optimized for scalability and performance
 """
 
 import os
@@ -22,10 +22,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # FastAPI imports
-from fastapi import FastAPI, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect, File, UploadFile, Form
+from fastapi import FastAPI, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect, File, UploadFile, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
+from fastapi.middleware.gzip import GZipMiddleware
 
 # Database imports
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -58,23 +59,40 @@ from gemini_supervisor import GeminiSupervisor
 from runwayml_processor import get_runwayml_processor
 from enhanced_coqui_voice_manager import get_enhanced_coqui_voice_manager
 
+# Import our new production-ready modules
+from database import db_manager
+from cache_manager import cache_manager, cache_result
+from file_manager import file_manager
+from queue_manager import queue_manager, TaskPriority
+from monitoring import performance_monitor, monitor_endpoint, monitor_performance
+
 # Create a function to get supervisor without circular import
 def get_gemini_supervisor(api_keys):
     """Get Gemini supervisor instance"""
     return GeminiSupervisor(api_keys)
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure logging for production
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('/var/log/app/backend.log'),
+        logging.StreamHandler()
+    ]
+)
 logger = logging.getLogger(__name__)
 
-# FastAPI app
+# FastAPI app with production configuration
 app = FastAPI(
-    title="Script-to-Video API",
-    description="Comprehensive script-to-video generation with AI models",
-    version="1.0.0"
+    title="Script-to-Video API - Production",
+    description="Comprehensive script-to-video generation with AI models - Production Ready",
+    version="2.0.0-production",
+    docs_url="/docs" if os.getenv("ENVIRONMENT") != "production" else None,
+    redoc_url="/redoc" if os.getenv("ENVIRONMENT") != "production" else None
 )
 
-# CORS middleware
+# Add middleware for production
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
