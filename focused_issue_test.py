@@ -52,6 +52,8 @@ class FocusedIssueTester:
                         missing_fields = []
                         nested_fields = []
                         
+                        logger.info(f"📋 Storage section structure: {json.dumps(storage, indent=2)}")
+                        
                         for field in required_fields:
                             if field not in storage:
                                 missing_fields.append(field)
@@ -60,9 +62,11 @@ class FocusedIssueTester:
                         
                         # Check if fields are incorrectly nested in storage.summary
                         if "summary" in storage:
+                            logger.info(f"📋 Found storage.summary section: {json.dumps(storage['summary'], indent=2)}")
                             for field in required_fields:
                                 if field in storage["summary"]:
                                     nested_fields.append(field)
+                                    logger.info(f"⚠️  Found {field} in storage.summary.{field} (should be at storage.{field})")
                         
                         if missing_fields:
                             if nested_fields:
