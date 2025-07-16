@@ -478,12 +478,13 @@ class EnhancedCoquiVoiceManager:
             else:
                 return 'english_character'
     
-    async def assign_voices_to_characters(self, characters: List[Dict]) -> Dict:
+    async def assign_voices_to_characters(self, characters: List[Dict], script: str = None) -> Dict:
         """
         Assign voices to characters based on their traits and language
         
         Args:
             characters: List of character dictionaries
+            script: Optional script text for context
             
         Returns:
             Dictionary mapping character names to voice assignments
