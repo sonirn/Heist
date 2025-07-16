@@ -137,45 +137,51 @@ function App() {
   };
 
   const connectSSE = () => {
-    if (sseRef.current) {
-      sseRef.current.close();
-    }
+    return new Promise((resolve, reject) => {
+      if (sseRef.current) {
+        sseRef.current.close();
+      }
 
-    const sseUrl = `${BACKEND_URL}/api/sse/${generationId}`;
-    sseRef.current = new EventSource(sseUrl);
+      const sseUrl = `${BACKEND_URL}/api/sse/${generationId}`;
+      console.log('Attempting SSE connection to:', sseUrl);
+      sseRef.current = new EventSource(sseUrl);
 
-    sseRef.current.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        setProgress(data.progress || 0);
-        setProgressMessage(data.message || '');
-        setGenerationStatus(data.status || '');
-        
-        if (data.status === 'completed' && data.video_url) {
-          setVideoUrl(data.video_url);
-          setIsGenerating(false);
-          setCurrentStep('result');
-        } else if (data.status === 'failed') {
-          setError(data.message || 'Generation failed');
-          setIsGenerating(false);
+      const timeout = setTimeout(() => {
+        reject(new Error('SSE connection timeout'));
+      }, 5000); // 5 second timeout
+
+      sseRef.current.onopen = () => {
+        clearTimeout(timeout);
+        console.log('SSE connection established');
+        resolve();
+      };
+
+      sseRef.current.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          setProgress(data.progress || 0);
+          setProgressMessage(data.message || '');
+          setGenerationStatus(data.status || '');
+          
+          if (data.status === 'completed' && data.video_url) {
+            setVideoUrl(data.video_url);
+            setIsGenerating(false);
+            setCurrentStep('result');
+          } else if (data.status === 'failed') {
+            setError(data.message || 'Generation failed');
+            setIsGenerating(false);
+          }
+        } catch (e) {
+          console.error('SSE data parsing error:', e);
         }
-      } catch (e) {
-        console.error('SSE data parsing error:', e);
-      }
-    };
+      };
 
-    sseRef.current.onerror = (error) => {
-      console.error('SSE error:', error);
-      // Fallback to WebSocket if SSE fails
-      if (wsRef.current === null) {
-        console.log('SSE failed, falling back to WebSocket');
-        connectWebSocket();
-      }
-    };
-
-    sseRef.current.onopen = () => {
-      console.log('SSE connection established');
-    };
+      sseRef.current.onerror = (error) => {
+        clearTimeout(timeout);
+        console.error('SSE error:', error);
+        reject(error);
+      };
+    });
   };
 
   const connectWebSocket = () => {
