@@ -71,7 +71,8 @@ class CacheManager:
             self.cache[key] = {
                 "value": value,
                 "created_at": datetime.now(),
-                "access_count": 0
+                "access_count": 0,
+                "last_accessed": datetime.now()
             }
             
             # Set TTL
