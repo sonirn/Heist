@@ -574,13 +574,14 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Server Storage Implementation and Video Download Functionality"
     - "Minimax API Balance and Video Generation Completion"
     - "Gemini Supervisor LlmChat Provider Argument Fix"
   stuck_tasks:
     - "WebSocket Communication Fix"
     - "Minimax API Balance and Video Generation Completion"
   test_all: false
-  test_priority: "critical_api_fixes_needed"
+  test_priority: "server_storage_migration_complete"
 
 agent_communication:
     - agent: "main"
