@@ -164,7 +164,7 @@ Always provide detailed, actionable feedback and maintain high quality standards
             
             # Parse JSON response
             try:
-                analysis = json.loads(response)
+                analysis = self._extract_json_from_response(response)
                 
                 # Store production context
                 self.production_context["script"] = script
@@ -175,8 +175,8 @@ Always provide detailed, actionable feedback and maintain high quality standards
                 logger.info(f"Script analysis completed: {len(analysis.get('characters', []))} characters, {len(analysis.get('scenes', []))} scenes")
                 return analysis
                 
-            except json.JSONDecodeError:
-                logger.error("Failed to parse JSON from Gemini response")
+            except Exception as e:
+                logger.error(f"Failed to parse JSON from Gemini response: {str(e)}")
                 # Return fallback analysis
                 return self._create_fallback_analysis(script)
                 
