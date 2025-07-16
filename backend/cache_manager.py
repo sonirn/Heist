@@ -163,6 +163,9 @@ class CacheManager:
             "total_access": total_access,
             "max_size": self.max_cache_size,
             "hit_ratio": total_access / max(total_size, 1),
+            "hit_rate": round(hit_rate, 2),  # Required field for production tests
+            "total_requests": self.total_requests,  # Required field for production tests
+            "cache_size": total_size,  # Required field for production tests
             "performance_metrics": {
                 "hit_count": self.hit_count,
                 "miss_count": self.miss_count,
