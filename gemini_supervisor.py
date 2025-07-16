@@ -961,12 +961,19 @@ Always provide detailed, actionable feedback and maintain high quality standards
                 if scenes:
                     original_script = " ".join([scene.get("description", "") for scene in scenes])
             
-            # Call the existing supervise_final_quality method
-            assessment = await self.supervise_final_quality(video_path, original_script)
+            # Add timeout to prevent hanging
+            import asyncio
+            assessment = await asyncio.wait_for(
+                self.supervise_final_quality(video_path, original_script),
+                timeout=25.0  # 25 second timeout (less than server timeout)
+            )
             
             logger.info(f"Final quality assessment completed: {assessment.get('approval_status', 'unknown')}")
             return assessment
             
+        except asyncio.TimeoutError:
+            logger.warning("Quality assessment timed out, using fallback")
+            return self._create_fallback_final_assessment()
         except Exception as e:
             logger.error(f"Final quality assessment failed: {str(e)}")
             return self._create_fallback_final_assessment()
