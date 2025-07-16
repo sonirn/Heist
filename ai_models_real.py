@@ -256,8 +256,20 @@ class MinimaxVideoGenerator:
                 return None
             
             create_data = create_response.json()
-            if "task_id" not in create_data:
-                logger.error("No task_id in response")
+            
+            # Check for insufficient balance error (status_code 1008)
+            if "base_resp" in create_data:
+                base_resp = create_data["base_resp"]
+                if base_resp.get("status_code") == 1008:
+                    logger.warning("Minimax API insufficient balance - switching to development mode")
+                    self.development_mode = True
+                    return None
+                elif base_resp.get("status_code") != 0:
+                    logger.error(f"Minimax API error: {base_resp.get('status_msg', 'Unknown error')}")
+                    return None
+            
+            if "task_id" not in create_data or not create_data["task_id"]:
+                logger.error("No valid task_id in response")
                 return None
             
             task_id = create_data["task_id"]
