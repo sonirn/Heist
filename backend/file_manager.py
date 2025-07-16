@@ -187,25 +187,96 @@ class FileManager:
         logger.info("File cleanup task started")
     
     async def get_storage_stats(self) -> Dict[str, Any]:
-        """Get storage usage statistics"""
+        """Get comprehensive storage usage statistics with cleanup and tracking metrics"""
         try:
             stats = {}
+            total_system_size = 0
+            total_file_count = 0
+            
+            # File type tracking
+            file_types = {
+                'video': 0,
+                'audio': 0,
+                'image': 0,
+                'text': 0,
+                'other': 0
+            }
+            
+            # Age-based file tracking
+            recent_files = 0  # Less than 1 hour old
+            old_files = 0     # More than 24 hours old
+            
+            current_time = datetime.now()
             
             for directory in [self.upload_dir, self.temp_dir]:
                 if os.path.exists(directory):
                     total_size = 0
                     file_count = 0
+                    dir_file_types = {key: 0 for key in file_types.keys()}
                     
                     for file_path in Path(directory).rglob("*"):
                         if file_path.is_file():
-                            total_size += file_path.stat().st_size
+                            stat = file_path.stat()
+                            file_size = stat.st_size
+                            total_size += file_size
                             file_count += 1
+                            
+                            # Track file type
+                            ext = file_path.suffix.lower()
+                            categorized = False
+                            for category, extensions in self.allowed_extensions.items():
+                                if ext in extensions:
+                                    file_types[category] += 1
+                                    dir_file_types[category] += 1
+                                    categorized = True
+                                    break
+                            
+                            if not categorized:
+                                file_types['other'] += 1
+                                dir_file_types['other'] += 1
+                            
+                            # Track file age
+                            file_age = current_time - datetime.fromtimestamp(stat.st_mtime)
+                            if file_age.total_seconds() < 3600:  # Less than 1 hour
+                                recent_files += 1
+                            elif file_age.total_seconds() > 86400:  # More than 24 hours
+                                old_files += 1
                     
                     stats[directory] = {
                         "total_size": total_size,
                         "file_count": file_count,
-                        "size_mb": round(total_size / (1024 * 1024), 2)
+                        "size_mb": round(total_size / (1024 * 1024), 2),
+                        "file_types": dir_file_types,
+                        "cleanup_candidates": old_files if directory == self.temp_dir else 0
                     }
+                    
+                    total_system_size += total_size
+                    total_file_count += file_count
+            
+            # Calculate cleanup recommendations
+            cleanup_recommendations = []
+            if old_files > 0:
+                cleanup_recommendations.append(f"{old_files} old files can be cleaned up")
+            if total_system_size > 1024 * 1024 * 1024:  # More than 1GB
+                cleanup_recommendations.append("Consider running storage cleanup")
+            
+            stats["summary"] = {
+                "total_system_size": total_system_size,
+                "total_system_size_mb": round(total_system_size / (1024 * 1024), 2),
+                "total_file_count": total_file_count,
+                "file_types_distribution": file_types,
+                "file_age_analysis": {
+                    "recent_files": recent_files,
+                    "old_files": old_files,
+                    "cleanup_candidates": old_files
+                },
+                "cleanup_recommendations": cleanup_recommendations,
+                "storage_efficiency": {
+                    "max_file_size_mb": self.max_file_size / (1024 * 1024),
+                    "chunk_size_mb": self.chunk_size / (1024 * 1024),
+                    "cleanup_interval_hours": self.cleanup_interval / 3600
+                }
+            }
             
             return stats
             
