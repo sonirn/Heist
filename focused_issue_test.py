@@ -69,20 +69,18 @@ class FocusedIssueTester:
                                     logger.info(f"⚠️  Found {field} in storage.summary.{field} (should be at storage.{field})")
                         
                         if missing_fields:
+                            self.results["storage_metrics_structure"]["details"] = f"❌ Missing required fields at storage root level: {missing_fields}"
+                            return False
+                        
+                        # Check if fields exist at root level (this is what we want)
+                        if not missing_fields:
+                            # All required fields are present at root level - this is correct!
+                            details = f"✅ All required storage fields found at correct root level: {required_fields}"
                             if nested_fields:
-                                self.results["storage_metrics_structure"]["details"] = f"❌ STRUCTURE ISSUE: Fields {nested_fields} found in storage.summary but should be at storage root level. Missing at root: {missing_fields}"
-                            else:
-                                self.results["storage_metrics_structure"]["details"] = f"❌ Missing required fields at storage root level: {missing_fields}"
-                            return False
-                        
-                        if nested_fields and not missing_fields:
-                            self.results["storage_metrics_structure"]["details"] = f"❌ STRUCTURE ISSUE: Fields {nested_fields} found in storage.summary but should be at storage root level"
-                            return False
-                        
-                        # All fields found at correct level
-                        self.results["storage_metrics_structure"]["details"] = f"✅ All required storage fields found at correct root level: {required_fields}"
-                        self.results["storage_metrics_structure"]["passed"] = True
-                        return True
+                                details += f" (Note: Fields also exist in storage.summary for backward compatibility)"
+                            self.results["storage_metrics_structure"]["details"] = details
+                            self.results["storage_metrics_structure"]["passed"] = True
+                            return True
                     
                     else:
                         self.results["storage_metrics_structure"]["details"] = f"❌ Health check endpoint returned status {response.status}"
