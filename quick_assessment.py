@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 async def quick_assessment():
-    backend_url = "https://89c8dad4-e406-4ba9-bb76-c3856de90963.preview.emergentagent.com"
+    backend_url = "https://e998c079-1531-47a1-827e-bbe508daab89.preview.emergentagent.com"
     api_base = f"{backend_url}/api"
     
     results = {}
