@@ -12,7 +12,7 @@ def test_health_endpoint():
     
     try:
         response = requests.get(
-            "https://fc574fbe-3b0c-4e7d-a840-5da941c2b339.preview.emergentagent.com/api/health",
+            "https://486c6065-7afc-46ff-b95a-0fcc1310281b.preview.emergentagent.com/api/health",
             timeout=10
         )
         
@@ -65,7 +65,7 @@ def test_websocket_endpoints():
     
     for endpoint in endpoints:
         try:
-            url = f"https://fc574fbe-3b0c-4e7d-a840-5da941c2b339.preview.emergentagent.com{endpoint}"
+            url = f"https://486c6065-7afc-46ff-b95a-0fcc1310281b.preview.emergentagent.com{endpoint}"
             response = requests.get(url, timeout=5)
             
             if response.status_code == 404:
@@ -94,7 +94,7 @@ def test_basic_api():
         }
         
         response = requests.post(
-            "https://fc574fbe-3b0c-4e7d-a840-5da941c2b339.preview.emergentagent.com/api/projects",
+            "https://486c6065-7afc-46ff-b95a-0fcc1310281b.preview.emergentagent.com/api/projects",
             json=project_data,
             timeout=10
         )
@@ -112,7 +112,7 @@ def test_basic_api():
             }
             
             response = requests.post(
-                "https://fc574fbe-3b0c-4e7d-a840-5da941c2b339.preview.emergentagent.com/api/generate",
+                "https://486c6065-7afc-46ff-b95a-0fcc1310281b.preview.emergentagent.com/api/generate",
                 json=generation_data,
                 timeout=10
             )

@@ -561,7 +561,7 @@ class WebSocketSSETester:
 async def main():
     """Main test function"""
     # Get backend URL from environment
-    backend_url = "https://fc574fbe-3b0c-4e7d-a840-5da941c2b339.preview.emergentagent.com"
+    backend_url = "https://486c6065-7afc-46ff-b95a-0fcc1310281b.preview.emergentagent.com"
     
     logger.info("🚀 Starting WebSocket and SSE Testing")
     logger.info(f"Backend URL: {backend_url}")

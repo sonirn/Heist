@@ -415,7 +415,7 @@ class FocusedBackendTester:
 async def run_focused_tests():
     """Run focused tests for the 9 specific production issues"""
     
-    backend_url = "https://fc574fbe-3b0c-4e7d-a840-5da941c2b339.preview.emergentagent.com"
+    backend_url = "https://486c6065-7afc-46ff-b95a-0fcc1310281b.preview.emergentagent.com"
     
     logger.info("🎯 STARTING FOCUSED PRODUCTION ISSUE TESTING")
     logger.info("=" * 80)

@@ -197,7 +197,7 @@ class CriticalFixesTester:
         return success
 
 async def main():
-    backend_url = "https://fc574fbe-3b0c-4e7d-a840-5da941c2b339.preview.emergentagent.com"
+    backend_url = "https://486c6065-7afc-46ff-b95a-0fcc1310281b.preview.emergentagent.com"
     
     async with CriticalFixesTester(backend_url) as tester:
         success = await tester.test_critical_bug_fixes()
