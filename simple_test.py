@@ -12,7 +12,7 @@ def test_health_endpoint():
     try:
         print("🏥 Testing Health Endpoint...")
         response = requests.get(
-            "https://ac967fb5-da9e-45e7-b4fa-d8f39d0ce9b3.preview.emergentagent.com/api/health",
+            "https://fc574fbe-3b0c-4e7d-a840-5da941c2b339.preview.emergentagent.com/api/health",
             timeout=30
         )
         
@@ -43,7 +43,7 @@ def test_voices_endpoint():
     try:
         print("🎤 Testing Voices Endpoint...")
         response = requests.get(
-            "https://ac967fb5-da9e-45e7-b4fa-d8f39d0ce9b3.preview.emergentagent.com/api/voices",
+            "https://fc574fbe-3b0c-4e7d-a840-5da941c2b339.preview.emergentagent.com/api/voices",
             timeout=30
         )
         
@@ -85,7 +85,7 @@ def test_project_creation():
         }
         
         response = requests.post(
-            "https://ac967fb5-da9e-45e7-b4fa-d8f39d0ce9b3.preview.emergentagent.com/api/projects",
+            "https://fc574fbe-3b0c-4e7d-a840-5da941c2b339.preview.emergentagent.com/api/projects",
             json=project_data,
             timeout=30
         )
@@ -120,7 +120,7 @@ def test_video_generation(project_id):
         }
         
         response = requests.post(
-            "https://ac967fb5-da9e-45e7-b4fa-d8f39d0ce9b3.preview.emergentagent.com/api/generate",
+            "https://fc574fbe-3b0c-4e7d-a840-5da941c2b339.preview.emergentagent.com/api/generate",
             json=generation_data,
             timeout=30
         )
@@ -153,7 +153,7 @@ def test_generation_progress(generation_id):
             time.sleep(3)
             
             response = requests.get(
-                f"https://ac967fb5-da9e-45e7-b4fa-d8f39d0ce9b3.preview.emergentagent.com/api/generate/{generation_id}",
+                f"https://fc574fbe-3b0c-4e7d-a840-5da941c2b339.preview.emergentagent.com/api/generate/{generation_id}",
                 timeout=30
             )
             
