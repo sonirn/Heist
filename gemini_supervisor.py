@@ -289,7 +289,7 @@ Always provide detailed, actionable feedback and maintain high quality standards
             
             # Parse JSON response
             try:
-                analysis = json.loads(response)
+                analysis = self._extract_json_from_response(response)
                 
                 # Ensure we have proper scene structure
                 scenes = analysis.get("scenes", [])
