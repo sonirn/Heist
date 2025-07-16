@@ -324,6 +324,21 @@ backend:
           agent: "main"
           comment: "✅ CRITICAL METHOD SIGNATURE ISSUE FIXED! Successfully resolved the character format mismatch between Gemini response and EnhancedCoquiVoiceManager expectations. ROOT CAUSE: The Gemini API returns characters with fields like 'name', 'role', 'personality', 'gender', 'age', but the voice manager expected a 'category' field. SOLUTION: Added character format mapping in server.py that converts Gemini 'role' field to expected 'category' field (e.g., 'protagonist' → 'english_protagonist', 'narrator' → 'english_narrator'). Also added language detection based on character names and proper fallback handling. The method signature was actually correct, the issue was data format mismatch."
 
+  - task: "GeminiSupervisor Missing Method Fix - generate_enhanced_video_prompt"
+    implemented: true
+    working: true
+    file: "gemini_supervisor.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "CRITICAL MISSING METHOD ERROR: Video generation failing with 'GeminiSupervisor' object has no attribute 'generate_enhanced_video_prompt' error. The video generation handler was calling gemini_supervisor.generate_enhanced_video_prompt() but this method was not available on the GeminiSupervisor class, causing all video generation attempts to fail after the JSON parsing fix."
+        - working: true
+          agent: "main"
+          comment: "✅ MISSING METHOD ISSUE FIXED! Successfully added the missing generate_enhanced_video_prompt method to the GeminiSupervisor class. SOLUTION: Added the method that generates enhanced, optimized video prompts using Gemini 2.5 Flash model, includes scene context (duration, visual mood, camera work, lighting), optimizes for 400-character limit for AI video generation, and provides robust error handling with fallback prompts. Method now available for video generation pipeline."
+
   - task: "Gemini Script Analysis JSON Parsing Fix"
     implemented: true
     working: true
