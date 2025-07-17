@@ -17,6 +17,9 @@ function App() {
   const [videoUrl, setVideoUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
+  const [videoLibrary, setVideoLibrary] = useState([]);
+  const [loadingLibrary, setLoadingLibrary] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
   const wsRef = useRef(null);
   const sseRef = useRef(null);
   const pollingIntervalRef = useRef(null);
