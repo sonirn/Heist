@@ -92,8 +92,10 @@ function App() {
             setProgressMessage(data.message || '');
             setGenerationStatus(data.status || '');
             
-            if (data.status === 'completed' && data.video_url) {
-              setVideoUrl(data.video_url);
+            if (data.status === 'completed') {
+              // Construct download URL from generation ID
+              const downloadUrl = data.video_url || `${BACKEND_URL}/api/download/${generationId}`;
+              setVideoUrl(downloadUrl);
               setIsGenerating(false);
               setCurrentStep('result');
               stopPolling();
