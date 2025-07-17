@@ -638,6 +638,105 @@ Finally, we'll demonstrate the real-time collaboration tools that keep your team
     </div>
   );
 
+  const renderVideoLibrary = () => {
+    return (
+      <div className="step-content">
+        <div className="step-header">
+          <h2>📚 Video Library</h2>
+          <p>Browse and download your previously generated videos</p>
+          <button 
+            onClick={() => setShowLibrary(false)}
+            className="back-button"
+          >
+            ← Back to Generator
+          </button>
+        </div>
+
+        <div className="library-stats">
+          <div className="stat-item">
+            <span className="stat-number">{videoLibrary.length}</span>
+            <span className="stat-label">Videos</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-number">{videoLibrary.reduce((acc, video) => acc + video.file_size_mb, 0).toFixed(1)} MB</span>
+            <span className="stat-label">Total Size</span>
+          </div>
+          <div className="stat-item">
+            <button 
+              onClick={loadVideoLibrary}
+              className="refresh-button"
+              disabled={loadingLibrary}
+            >
+              {loadingLibrary ? '⟳' : '🔄'} Refresh
+            </button>
+          </div>
+        </div>
+
+        {loadingLibrary ? (
+          <div className="loading-library">
+            <div className="loading-spinner"></div>
+            <p>Loading video library...</p>
+          </div>
+        ) : videoLibrary.length === 0 ? (
+          <div className="empty-library">
+            <div className="empty-icon">📹</div>
+            <h3>No videos generated yet</h3>
+            <p>Generate your first video to see it here!</p>
+            <button 
+              onClick={() => setShowLibrary(false)}
+              className="primary-button"
+            >
+              Generate Video
+            </button>
+          </div>
+        ) : (
+          <div className="video-grid">
+            {videoLibrary.map((video, index) => (
+              <div key={video.generation_id} className="video-card">
+                <div className="video-thumbnail">
+                  <div className="video-icon">🎬</div>
+                  <div className="video-info">
+                    <div className="video-title">Video #{videoLibrary.length - index}</div>
+                    <div className="video-size">{video.file_size_mb} MB</div>
+                  </div>
+                </div>
+                
+                <div className="video-details">
+                  <div className="video-script">
+                    <strong>Script:</strong> {video.script_preview}
+                  </div>
+                  <div className="video-meta">
+                    <div className="video-date">
+                      Created: {new Date(video.created_at).toLocaleDateString()} at {new Date(video.created_at).toLocaleTimeString()}
+                    </div>
+                    <div className="video-id">
+                      ID: {video.generation_id.slice(-8)}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="video-actions">
+                  <button 
+                    onClick={() => downloadVideo(video.generation_id, `video_${index + 1}_${video.generation_id}.mp4`)}
+                    className="download-button"
+                  >
+                    📥 Download
+                  </button>
+                  <button 
+                    onClick={() => window.open(`${BACKEND_URL}/api/download/${video.generation_id}`, '_blank')}
+                    className="view-button"
+                  >
+                    👀 View
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderCurrentStep = () => {
     if (showLibrary) {
       return renderVideoLibrary();
