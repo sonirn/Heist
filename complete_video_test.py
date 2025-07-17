@@ -121,7 +121,7 @@ class VideoGenerationTester:
             
             if response.status_code == 200:
                 project_data = response.json()
-                generation_id = project_data.get('generation_id')
+                generation_id = project_data.get('generation_id') or project_data.get('project_id')
                 self.log(f"✅ Project created: {generation_id}")
                 return generation_id
             else:
