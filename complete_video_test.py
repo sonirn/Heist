@@ -294,7 +294,7 @@ class VideoGenerationTester:
             test_result['issues'].append("Progress monitoring failed or timed out")
             
         # Step 4: Test download (always try, even if progress stuck)
-        download_success, video_size = self.test_download(generation_id)
+        download_success, video_size = self.test_download(final_generation_id)
         test_result['steps']['download'] = download_success
         test_result['video_size'] = video_size
         
