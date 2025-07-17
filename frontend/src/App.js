@@ -762,6 +762,17 @@ Finally, we'll demonstrate the real-time collaboration tools that keep your team
         <div className="header-content">
           <h1>🎬 Script to Video</h1>
           <p>Transform your scripts into engaging videos with AI</p>
+          <div className="header-actions">
+            <button 
+              onClick={() => {
+                setShowLibrary(true);
+                loadVideoLibrary();
+              }}
+              className="library-button"
+            >
+              📚 Video Library
+            </button>
+          </div>
         </div>
       </header>
 
