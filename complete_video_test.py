@@ -12,7 +12,7 @@ from datetime import datetime
 import traceback
 
 # Configuration
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8001')
+BACKEND_URL = "https://cb9b6811-3e2b-4ac5-b88c-17d26bae6a2c.preview.emergentagent.com"
 TEST_SCRIPTS = [
     {
         "name": "Simple Script Test",
