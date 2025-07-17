@@ -266,15 +266,18 @@ class VideoGenerationTester:
         test_result['generation_id'] = generation_id
         
         # Step 2: Start generation
-        generation_started = self.start_generation(generation_id)
-        test_result['steps']['generation_start'] = generation_started
+        actual_generation_id = self.start_generation(generation_id, test_script['script'])
+        test_result['steps']['generation_start'] = actual_generation_id is not None
         
-        if not generation_started:
+        if not actual_generation_id:
             test_result['issues'].append("Generation start failed")
             return test_result
             
+        # Use the actual generation ID returned from the generation start
+        final_generation_id = actual_generation_id
+        
         # Step 3: Monitor progress
-        progress_result, final_data = self.monitor_progress(generation_id)
+        progress_result, final_data = self.monitor_progress(final_generation_id)
         test_result['steps']['progress_monitoring'] = progress_result
         
         if final_data:
