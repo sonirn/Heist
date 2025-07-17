@@ -141,6 +141,46 @@ function App() {
     }
   };
 
+  const loadVideoLibrary = async () => {
+    setLoadingLibrary(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/videos/library`);
+      if (response.ok) {
+        const libraryData = await response.json();
+        setVideoLibrary(libraryData.videos || []);
+      } else {
+        setError('Failed to load video library');
+      }
+    } catch (error) {
+      console.error('Failed to load video library:', error);
+      setError('Failed to load video library');
+    } finally {
+      setLoadingLibrary(false);
+    }
+  };
+
+  const downloadVideo = async (generationId, filename) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/download/${generationId}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename || `video_${generationId}.mp4`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      } else {
+        setError('Failed to download video');
+      }
+    } catch (error) {
+      console.error('Failed to download video:', error);
+      setError('Failed to download video');
+    }
+  };
+
   const connectSSE = () => {
     return new Promise((resolve, reject) => {
       if (sseRef.current) {
