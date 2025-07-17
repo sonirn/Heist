@@ -384,7 +384,7 @@ class Progress95PercentTester:
 async def main():
     """Main test execution"""
     # Get backend URL from environment
-    backend_url = os.getenv("REACT_APP_BACKEND_URL", "https://533dceb9-a2e4-4c4e-88fc-2fdbbf93e5c9.preview.emergentagent.com")
+    backend_url = os.getenv("REACT_APP_BACKEND_URL", "https://cb9b6811-3e2b-4ac5-b88c-17d26bae6a2c.preview.emergentagent.com")
     
     logger.info(f"🎯 Testing 95% stuck issue fix against: {backend_url}")
     
