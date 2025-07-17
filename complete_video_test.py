@@ -12,7 +12,7 @@ from datetime import datetime
 import traceback
 
 # Configuration
-BACKEND_URL = "https://cb9b6811-3e2b-4ac5-b88c-17d26bae6a2c.preview.emergentagent.com"
+BACKEND_URL = "http://localhost:8001"
 TEST_SCRIPTS = [
     {
         "name": "Simple Script Test",
