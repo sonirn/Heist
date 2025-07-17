@@ -132,23 +132,32 @@ class VideoGenerationTester:
             self.log(f"❌ Project creation error: {str(e)}", "ERROR")
             return None
             
-    def start_generation(self, generation_id):
+    def start_generation(self, generation_id, script, aspect_ratio="16:9"):
         """Start video generation process"""
         self.log(f"Starting video generation for {generation_id}...")
         try:
-            response = requests.post(f"{BACKEND_URL}/api/generate/{generation_id}", 
+            payload = {
+                "project_id": generation_id,
+                "script": script,
+                "aspect_ratio": aspect_ratio
+            }
+            
+            response = requests.post(f"{BACKEND_URL}/api/generate", 
+                                   json=payload,
                                    timeout=30)
             
             if response.status_code == 200:
-                self.log("✅ Video generation started successfully")
-                return True
+                generation_data = response.json()
+                actual_generation_id = generation_data.get('generation_id')
+                self.log(f"✅ Video generation started: {actual_generation_id}")
+                return actual_generation_id
             else:
                 self.log(f"❌ Generation start failed: {response.status_code}", "ERROR")
                 self.log(f"Response: {response.text}", "ERROR")
-                return False
+                return None
         except Exception as e:
             self.log(f"❌ Generation start error: {str(e)}", "ERROR")
-            return False
+            return None
             
     def monitor_progress(self, generation_id, max_wait_seconds=600):
         """Monitor video generation progress"""
