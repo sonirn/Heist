@@ -1621,6 +1621,68 @@ async def get_voices():
         logger.error(f"Failed to get voices: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to get voices")
 
+@app.get("/api/videos/library")
+async def get_video_library():
+    """Get all available videos from server storage"""
+    try:
+        server_storage_dir = "/tmp/output"
+        videos = []
+        
+        # Check if directory exists
+        if not os.path.exists(server_storage_dir):
+            return {"videos": videos, "total_count": 0}
+        
+        # Get all video files
+        for filename in os.listdir(server_storage_dir):
+            if filename.startswith("final_video_") and filename.endswith(".mp4"):
+                video_path = os.path.join(server_storage_dir, filename)
+                
+                # Extract generation ID from filename
+                generation_id = filename.replace("final_video_", "").replace(".mp4", "")
+                
+                # Get file stats
+                stat = os.stat(video_path)
+                file_size = stat.st_size
+                created_time = datetime.fromtimestamp(stat.st_ctime)
+                modified_time = datetime.fromtimestamp(stat.st_mtime)
+                
+                # Try to get additional info from database if available
+                script_preview = "Generated video"
+                try:
+                    generation = await db.generations.find_one({"generation_id": generation_id})
+                    if generation:
+                        script_preview = generation.get("script", "Generated video")
+                        if len(script_preview) > 100:
+                            script_preview = script_preview[:100] + "..."
+                except:
+                    pass
+                
+                video_info = {
+                    "generation_id": generation_id,
+                    "filename": filename,
+                    "file_size": file_size,
+                    "file_size_mb": round(file_size / (1024 * 1024), 2),
+                    "created_at": created_time.isoformat(),
+                    "modified_at": modified_time.isoformat(),
+                    "script_preview": script_preview,
+                    "download_url": f"/api/download/{generation_id}",
+                    "status": "available"
+                }
+                videos.append(video_info)
+        
+        # Sort by creation time (newest first)
+        videos.sort(key=lambda x: x["created_at"], reverse=True)
+        
+        return {
+            "videos": videos,
+            "total_count": len(videos),
+            "total_size_mb": round(sum(v["file_size"] for v in videos) / (1024 * 1024), 2)
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get video library: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get video library")
+
 @app.get("/api/download/{generation_id}")
 async def download_video(generation_id: str):
     """Download video file from server storage"""
