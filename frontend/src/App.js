@@ -639,6 +639,10 @@ Finally, we'll demonstrate the real-time collaboration tools that keep your team
   );
 
   const renderCurrentStep = () => {
+    if (showLibrary) {
+      return renderVideoLibrary();
+    }
+    
     switch (currentStep) {
       case 'script':
         return renderScriptStep();
